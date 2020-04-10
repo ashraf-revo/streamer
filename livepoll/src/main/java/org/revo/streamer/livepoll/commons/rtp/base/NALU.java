@@ -1,19 +1,21 @@
 package org.revo.streamer.livepoll.commons.rtp.base;
 
 
+import org.revo.streamer.livepoll.util.ElementSpecific;
+
 public class NALU extends Packet {
     private byte[] payload;
     private NaluHeader naluHeader;
     private final static byte[] header = {0x00, 0x00, 0x00, 0x01};
 
-    public NALU(byte[] payload, int offset, int length) {
+    public NALU(byte[] payload, int offset, int length, ElementSpecific specific) {
         this.payload = new byte[length - offset];
         System.arraycopy(payload, offset, this.payload, 0, this.payload.length);
         this.naluHeader = NaluHeader.read(payload[offset]);
     }
 
 
-    public NALU(int F, int NRI, int TYPE) {
+    public NALU(int F, int NRI, int TYPE, ElementSpecific specific) {
         this.payload = new byte[1];
         this.naluHeader = NaluHeader.from(F, NRI, TYPE);
         this.payload[0] = this.naluHeader.getRaw();

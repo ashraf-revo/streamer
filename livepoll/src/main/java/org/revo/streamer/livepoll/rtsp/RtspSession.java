@@ -7,8 +7,8 @@ import gov.nist.javax.sdp.parser.ParserFactory;
 import gov.nist.javax.sdp.parser.SDPParser;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import org.apache.commons.lang.StringUtils;
-import org.revo.streamer.livepoll.commons.d.InterLeavedRTPSession;
-import org.revo.streamer.livepoll.commons.d.MediaStream;
+import org.revo.streamer.livepoll.commons.rtp.d.InterLeavedRTPSession;
+import org.revo.streamer.livepoll.commons.rtp.d.MediaStream;
 import org.revo.streamer.livepoll.commons.utils.URLObject;
 
 import javax.sdp.MediaDescription;

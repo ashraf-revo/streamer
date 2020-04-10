@@ -14,8 +14,8 @@ import javax.sip.TransportNotSupportedException;
 import java.util.AbstractMap;
 import java.util.Optional;
 
-import static org.revo.streamer.livepoll.rtsp.utils.MessageUtils.append;
-import static org.revo.streamer.livepoll.rtsp.utils.MessageUtils.get;
+import static org.revo.streamer.livepoll.commons.utils.MessageUtils.append;
+import static org.revo.streamer.livepoll.commons.utils.MessageUtils.get;
 
 
 public class SetupAction extends BaseAction<DefaultFullHttpRequest> {

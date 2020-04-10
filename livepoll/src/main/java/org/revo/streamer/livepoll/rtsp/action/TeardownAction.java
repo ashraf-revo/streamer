@@ -6,12 +6,11 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.rtsp.RtspHeaderNames;
 import io.netty.handler.codec.rtsp.RtspVersions;
 import org.revo.streamer.livepoll.rtsp.RtspSession;
-import org.revo.streamer.livepoll.rtsp.RtspSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.revo.streamer.livepoll.rtsp.utils.MessageUtils.append;
-import static org.revo.streamer.livepoll.rtsp.utils.MessageUtils.get;
+import static org.revo.streamer.livepoll.commons.utils.MessageUtils.append;
+import static org.revo.streamer.livepoll.commons.utils.MessageUtils.get;
 
 public class TeardownAction extends BaseAction<DefaultFullHttpRequest> {
     private static final Logger logger = LoggerFactory.getLogger(TeardownAction.class);

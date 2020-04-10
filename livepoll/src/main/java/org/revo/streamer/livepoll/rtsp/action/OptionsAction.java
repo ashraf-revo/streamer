@@ -9,7 +9,7 @@ import org.revo.streamer.livepoll.rtsp.RtspSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.revo.streamer.livepoll.rtsp.utils.MessageUtils.*;
+import static org.revo.streamer.livepoll.commons.utils.MessageUtils.*;
 
 
 public class OptionsAction extends BaseAction<DefaultFullHttpRequest> {

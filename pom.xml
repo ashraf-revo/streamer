@@ -50,6 +50,5 @@
     </build>
     <modules>
         <module>livepoll</module>
-        <module>stream</module>
     </modules>
 </project>

@@ -3,6 +3,7 @@ package org.revo.streamer.livepoll.commons.rtp;
 
 import org.revo.streamer.livepoll.commons.rtp.base.NALU;
 import org.revo.streamer.livepoll.commons.rtp.base.RtpPkt;
+import org.revo.streamer.livepoll.util.ElementSpecific;
 
 import java.util.Arrays;
 import java.util.Base64;
@@ -22,8 +23,8 @@ public class RtpUtil {
         return new RtpPkt(0, rtpRaw);
     }
 
-    public static NALU spsppsToNalu(List<String> spspps) {
-        NALU fuNalU = new NALU(0, 3, 24);
+    public static NALU spsppsToNalu(List<String> spspps, ElementSpecific specific) {
+        NALU fuNalU = new NALU(0, 3, 24,specific);
         for (String s : spspps) {
             byte[] data = Base64.getDecoder().decode(s);
             fuNalU.appendPayload(uIntIntToByteWord(data.length), 0);
@@ -32,16 +33,16 @@ public class RtpUtil {
         return fuNalU;
     }
 
-    public static List<NALU> spsppsToNalus(List<String> spspps) {
-        return spspps.stream().map(RtpUtil::toNalu).collect(Collectors.toList());
+    public static List<NALU> spsppsToNalus(List<String> spspps, ElementSpecific specific) {
+        return spspps.stream().map((String it) -> toNalu(it,specific)).collect(Collectors.toList());
     }
 
-    public static NALU toNalu(String it) {
+    public static NALU toNalu(String it, ElementSpecific specific) {
         byte[] bytes = Base64.getDecoder().decode(it);
-        return new NALU(bytes, 0, bytes.length);
+        return new NALU(bytes, 0, bytes.length, specific);
     }
 
-    public static RtpPkt toRtpPkt(String spspps) {
-        return fromNalu(spsppsToNalu(Arrays.asList(spspps.split(","))));
+    public static RtpPkt toRtpPkt(String spspps, ElementSpecific specific) {
+        return fromNalu(spsppsToNalu(Arrays.asList(spspps.split(",")),specific));
     }
 }

@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Optional;
 
-import static org.revo.streamer.livepoll.rtsp.utils.MessageUtils.append;
-import static org.revo.streamer.livepoll.rtsp.utils.MessageUtils.get;
+import static org.revo.streamer.livepoll.commons.utils.MessageUtils.append;
+import static org.revo.streamer.livepoll.commons.utils.MessageUtils.get;
 
 
 public class AnnounceAction extends BaseAction<DefaultFullHttpRequest> {

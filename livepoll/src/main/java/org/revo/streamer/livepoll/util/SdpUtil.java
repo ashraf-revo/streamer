@@ -2,7 +2,7 @@ package org.revo.streamer.livepoll.util;
 
 import gov.nist.javax.sdp.MediaDescriptionImpl;
 import gov.nist.javax.sdp.fields.AttributeField;
-import org.revo.streamer.livepoll.commons.d.StreamType;
+import org.revo.streamer.livepoll.commons.rtp.d.StreamType;
 
 import javax.sdp.SdpException;
 import javax.sdp.SessionDescription;

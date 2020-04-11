@@ -46,16 +46,15 @@ public class NALU extends Packet {
         return bytes;
     }
 
-    public static byte[] getRaw(byte[] payload) {
-        byte[] bytes = new byte[header.length + payload.length];
-        System.arraycopy(header, 0, bytes, 0, header.length);
-        System.arraycopy(payload, 0, bytes, header.length, payload.length);
-        return bytes;
-    }
 
     @Override
     public byte[] getPayload() {
         return payload;
+    }
+
+    @Override
+    int headerSize() {
+        return header.length;
     }
 
     public static class NaluHeader {

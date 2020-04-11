@@ -17,13 +17,13 @@ public class LocalFileStorageImpl implements FileStorage {
     private ResourceLoader resourceLoader;
 
     @Override
-    public void store(String path, byte[] payload) {
+    public void store(String path, byte[] payload,boolean append) {
         try {
             File staticDir = this.resourceLoader.getResource("classpath:static").getFile();
             File stored = new File(staticDir + "/" + path);
             stored.getParentFile().getParentFile().mkdir();
             stored.getParentFile().mkdir();
-            FileOutputStream fos = new FileOutputStream(stored);
+            FileOutputStream fos = new FileOutputStream(stored,append);
             fos.write(payload);
         } catch (IOException e) {
             e.printStackTrace();

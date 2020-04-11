@@ -3,6 +3,9 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**
 !**/src/test/**
+*.h264
+*.aac
+*.m3u8
 
 ### STS ###
 .apt_generated

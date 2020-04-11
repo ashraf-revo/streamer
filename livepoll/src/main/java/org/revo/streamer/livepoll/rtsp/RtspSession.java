@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.revo.streamer.livepoll.commons.rtp.d.InterLeavedRTPSession;
 import org.revo.streamer.livepoll.commons.rtp.d.MediaStream;
 import org.revo.streamer.livepoll.commons.utils.URLObject;
+import org.revo.streamer.livepoll.util.SdpUtil;
 
 import javax.sdp.MediaDescription;
 import javax.sdp.SdpException;
@@ -129,29 +130,8 @@ public class RtspSession {
 
     public RtspSession withSdp(String sdp) {
         this.sdp = sdp;
-        SessionDescriptionImpl sd = new SessionDescriptionImpl();
-
-        if (!StringUtils.isEmpty(sdp)) {
-            StringTokenizer tokenizer = new StringTokenizer(sdp);
-            while (tokenizer.hasMoreChars()) {
-                String line = tokenizer.nextToken();
-
-                try {
-                    SDPParser paser = ParserFactory.createParser(line);
-                    if (null != paser) {
-                        SDPField obj = paser.parse();
-                        sd.addField(obj);
-                    }
-                } catch (ParseException e) {
-//                    logger.warn("fail parse [{}]", line, e);
-                }
-            }
-
-        }
-
-        List<MediaDescription> mediaDescripts = getMediaDescriptions(sd);
-
-        this.sd = sd;
+        this.sd = SdpUtil.withSdp(sdp);
+        List<MediaDescription> mediaDescripts = getMediaDescriptions(this.sd);
         this.rtpSessions = new InterLeavedRTPSession[mediaDescripts.size()];
         return this;
     }

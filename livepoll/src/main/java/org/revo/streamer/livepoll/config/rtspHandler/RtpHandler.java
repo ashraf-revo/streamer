@@ -33,10 +33,13 @@ public class RtpHandler implements BiFunction<RtpPkt, RtspSession, Mono<?>>, Clo
         InterLeavedRTPSession rtpSession = session.getRTPSessions()[session.getStreamIndex(rtpPkt.getRtpChannle())];
         if (rtpPkt.getRtpChannle() == rtpSession.rtpChannel()) {
             if (rtpSession.getMediaStream().getMediaType() == MediaType.VIDEO) {
-                rtpNaluEncoder.encode(rtpPkt).forEach(it -> splitter.getVideoSlitter().split(NALU.getRaw(it.getPayload())));
+                rtpNaluEncoder.encode(rtpPkt).forEach(it -> {
+                    System.out.println(it.getNaluHeader().getTYPE());
+                    splitter.getVideoSlitter().split(it.getRaw());
+                });
             }
             if (rtpSession.getMediaStream().getMediaType() == MediaType.AUDIO) {
-                rtpAdtsEncoder.encode(rtpPkt).forEach(it -> splitter.getM3u8AudioSplitter().split(Adts.getRaw(it.getPayload())));
+                rtpAdtsEncoder.encode(rtpPkt).forEach(it -> splitter.getM3u8AudioSplitter().split(it.getRaw()));
             }
         }
 

@@ -52,7 +52,7 @@ public class RtpPkt extends Packet  {
     }
 
 
-    public int getRtpHeaderLength() {
+    public int headerSize() {
         //TODO include extension
         return 12 + 4 * getCsrcCount();
     }
@@ -127,7 +127,7 @@ public class RtpPkt extends Packet  {
 
     private void slicePayload(int bytes) {
         payload = new byte[bytes];
-        int headerLen = getRtpHeaderLength();
+        int headerLen = headerSize();
 
         System.arraycopy(this.raw, headerLen, payload, 0, bytes);
     }

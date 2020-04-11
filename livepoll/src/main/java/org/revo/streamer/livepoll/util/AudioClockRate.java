@@ -26,11 +26,19 @@ public enum AudioClockRate {
         this.frequency = frequency;
     }
 
-    public Optional<AudioClockRate> getByIndex(int index) {
+    public static Optional<AudioClockRate> getByIndex(int index) {
         return Arrays.stream(AudioClockRate.values()).filter(it -> it.index == index).findAny();
     }
 
-    public Optional<AudioClockRate> getByFrequency(int frequency) {
+    public static Optional<AudioClockRate> getByFrequency(int frequency) {
         return Arrays.stream(AudioClockRate.values()).filter(it -> it.frequency == frequency).findAny();
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public int getFrequency() {
+        return frequency;
     }
 }

@@ -14,7 +14,7 @@ public class M3u8VideoSplitter extends Splitter {
 
     @Override
     public void split(byte[] payload) {
-
+        this.getConsumer().accept(0, 0.0, payload);
     }
 
     @Override

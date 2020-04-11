@@ -1,11 +1,18 @@
 package org.revo.streamer.livepoll.util;
 
+import gov.nist.core.StringTokenizer;
 import gov.nist.javax.sdp.MediaDescriptionImpl;
+import gov.nist.javax.sdp.SessionDescriptionImpl;
 import gov.nist.javax.sdp.fields.AttributeField;
+import gov.nist.javax.sdp.fields.SDPField;
+import gov.nist.javax.sdp.parser.ParserFactory;
+import gov.nist.javax.sdp.parser.SDPParser;
+import org.apache.commons.lang.StringUtils;
 import org.revo.streamer.livepoll.commons.rtp.d.StreamType;
 
 import javax.sdp.SdpException;
 import javax.sdp.SessionDescription;
+import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -65,4 +72,28 @@ public class SdpUtil {
                 .map(it -> it.getAttribute().getValue().split("; ")[1]
                         .replace("sprop-parameter-sets=", "")).collect(Collectors.toList());
     }
+
+    static public SessionDescriptionImpl withSdp(String sdp) {
+        SessionDescriptionImpl sd = new SessionDescriptionImpl();
+
+        if (!StringUtils.isEmpty(sdp)) {
+            gov.nist.core.StringTokenizer tokenizer = new StringTokenizer(sdp);
+            while (tokenizer.hasMoreChars()) {
+                String line = tokenizer.nextToken();
+
+                try {
+                    SDPParser paser = ParserFactory.createParser(line);
+                    if (null != paser) {
+                        SDPField obj = paser.parse();
+                        sd.addField(obj);
+                    }
+                } catch (ParseException e) {
+//                    logger.warn("fail parse [{}]", line, e);
+                }
+            }
+
+        }
+        return sd;
+    }
+
 }

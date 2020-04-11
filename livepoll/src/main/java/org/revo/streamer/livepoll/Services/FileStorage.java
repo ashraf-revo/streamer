@@ -3,7 +3,7 @@ package org.revo.streamer.livepoll.Services;
 import org.revo.streamer.livepoll.commons.rtp.d.MediaType;
 
 public interface FileStorage {
-    void store(String path, byte[] payload);
+    void store(String path, byte[] payload,boolean append);
 
     void append(String streamId, MediaType video, String mediaSegment);
 

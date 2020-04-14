@@ -1,4 +1,4 @@
-package org.revo.streamer.livepoll.util;
+package org.revo.streamer.livepoll.sdp;
 
 import java.util.HashMap;
 import java.util.Map;

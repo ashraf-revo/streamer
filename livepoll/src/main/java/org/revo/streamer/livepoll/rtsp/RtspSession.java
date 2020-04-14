@@ -1,23 +1,18 @@
 package org.revo.streamer.livepoll.rtsp;
 
-import gov.nist.core.StringTokenizer;
 import gov.nist.javax.sdp.SessionDescriptionImpl;
-import gov.nist.javax.sdp.fields.SDPField;
-import gov.nist.javax.sdp.parser.ParserFactory;
-import gov.nist.javax.sdp.parser.SDPParser;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import org.apache.commons.lang.StringUtils;
 import org.revo.streamer.livepoll.commons.rtp.d.InterLeavedRTPSession;
 import org.revo.streamer.livepoll.commons.rtp.d.MediaStream;
 import org.revo.streamer.livepoll.commons.utils.URLObject;
-import org.revo.streamer.livepoll.util.SdpUtil;
+import org.revo.streamer.livepoll.sdp.SdpUtil;
 
 import javax.sdp.MediaDescription;
 import javax.sdp.SdpException;
 import javax.sdp.SessionDescription;
 import javax.sip.TransportNotSupportedException;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
 import java.util.*;
 
 public class RtspSession {

@@ -34,6 +34,7 @@ public class RtpHandler implements BiFunction<RtpPkt, RtspSession, Mono<?>>, Clo
         if (rtpPkt.getRtpChannle() == rtpSession.rtpChannel()) {
             if (rtpSession.getMediaStream().getMediaType() == MediaType.VIDEO) {
                 rtpNaluEncoder.encode(rtpPkt).forEach(it -> {
+                    if (it.getNaluHeader().getTYPE()!=1)
                     System.out.println(it.getNaluHeader().getTYPE());
                     splitter.getVideoSlitter().split(it.getRaw());
                 });

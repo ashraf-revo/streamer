@@ -2,7 +2,7 @@ package org.revo.streamer.livepoll.commons.container.m3u8;
 
 import org.revo.streamer.livepoll.commons.container.Splitter;
 import org.revo.streamer.livepoll.commons.utils.TriConsumer;
-import org.revo.streamer.livepoll.util.ElementSpecific;
+import org.revo.streamer.livepoll.sdp.ElementSpecific;
 
 import java.io.ByteArrayOutputStream;
 import java.util.concurrent.atomic.AtomicInteger;

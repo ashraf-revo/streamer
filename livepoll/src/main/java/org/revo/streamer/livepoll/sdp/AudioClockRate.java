@@ -1,7 +1,6 @@
-package org.revo.streamer.livepoll.util;
+package org.revo.streamer.livepoll.sdp;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 public enum AudioClockRate {
 
@@ -16,7 +15,8 @@ public enum AudioClockRate {
     S_12000k(8, 12000),
     S_11025k(9, 11025),
     S_8000k(10, 8000),
-    S_7350k(11, 7350);
+    S_7350k(11, 7350),
+    Unknown(15, 0);
 
     private final int index;
     private final int frequency;
@@ -26,12 +26,12 @@ public enum AudioClockRate {
         this.frequency = frequency;
     }
 
-    public static Optional<AudioClockRate> getByIndex(int index) {
-        return Arrays.stream(AudioClockRate.values()).filter(it -> it.index == index).findAny();
+    public static AudioClockRate getByIndex(int index) {
+        return Arrays.stream(AudioClockRate.values()).filter(it -> it.index == index).findAny().orElse(Unknown);
     }
 
-    public static Optional<AudioClockRate> getByFrequency(int frequency) {
-        return Arrays.stream(AudioClockRate.values()).filter(it -> it.frequency == frequency).findAny();
+    public static AudioClockRate getByFrequency(int frequency) {
+        return Arrays.stream(AudioClockRate.values()).filter(it -> it.frequency == frequency).findAny().orElse(Unknown);
     }
 
     public int getIndex() {

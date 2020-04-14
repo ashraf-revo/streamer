@@ -1,6 +1,6 @@
 package org.revo.streamer.livepoll.commons.container;
 
-import org.revo.streamer.livepoll.util.SdpElementParser;
+import org.revo.streamer.livepoll.sdp.SdpElementParser;
 
 import java.io.Closeable;
 

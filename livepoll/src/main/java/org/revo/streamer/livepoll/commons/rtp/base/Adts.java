@@ -1,7 +1,8 @@
 package org.revo.streamer.livepoll.commons.rtp.base;
 
-import org.revo.streamer.livepoll.util.AudioClockRate;
-import org.revo.streamer.livepoll.util.ElementSpecific;
+import org.revo.streamer.livepoll.sdp.ElementSpecific;
+
+import static org.revo.streamer.livepoll.sdp.AudioClockRate.getByFrequency;
 
 public class Adts extends Packet {
     private byte[] raw;
@@ -11,7 +12,7 @@ public class Adts extends Packet {
     //FF F1 5C 80 00 0F FC 21
 //    FF F1 4C 80 00 1F FC
     public Adts(byte[] payload, int offset, int size, ElementSpecific specific) {
-        byte[] adtsHeader = getAdtsHeader(size,specific);
+        byte[] adtsHeader = getAdtsHeader(size, specific);
         raw = new byte[size + adtsHeader.length];
         System.arraycopy(adtsHeader, 0, raw, 0, adtsHeader.length);
         System.arraycopy(payload, offset, raw, adtsHeader.length, size);
@@ -20,7 +21,7 @@ public class Adts extends Packet {
     private static byte[] getAdtsHeader(int size, ElementSpecific specific) {
         byte[] adtsHeader = new byte[]{(byte) 0xFF, (byte) 0xF1, (byte) 0x40, (byte) 0x80, (byte) 0x2F, (byte) 0x5F, (byte) 0xFC};
         size += adtsHeader.length;
-        adtsHeader[2] |= (byte) ((AudioClockRate.getByFrequency(specific.getClockRate()).get().getFrequency()) << 2);
+        adtsHeader[2] |= (byte) ((getByFrequency(specific.getClockRate()).getFrequency()) << 2);
         adtsHeader[3] |= (byte) ((size & 0x1800) >> 11);
         adtsHeader[4] = (byte) ((size & 0x1FF8) >> 3);
         adtsHeader[5] = (byte) ((size & 0x7) << 5);

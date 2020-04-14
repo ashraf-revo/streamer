@@ -7,7 +7,7 @@ import org.revo.streamer.livepoll.Services.HolderImpl;
 import org.revo.streamer.livepoll.commons.container.m3u8.M3u8Splitter;
 import org.revo.streamer.livepoll.rtsp.RtspSession;
 import org.revo.streamer.livepoll.rtsp.action.*;
-import org.revo.streamer.livepoll.util.SdpElementParser;
+import org.revo.streamer.livepoll.sdp.SdpElementParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -59,7 +59,9 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<?>> {
             SdpElementParser parse = SdpElementParser.parse(this.session.getSessionDescription());
             if (SdpElementParser.validate(parse)) {
                 M3u8Splitter m3u8Splitter = new M3u8Splitter(2, this.session.getStreamId(),
-                        this.holderImpl.getFileStorage(), parse, (var1, var2, var3) -> System.out.println(var1 + "  " + var3 + " time " + var2));
+                        this.holderImpl.getFileStorage(), parse, (var1, var2, var3) -> {
+//                    System.out.println(var1 + "  " + var3 + " time " + var2);
+                });
                 this.rtpHandler = new RtpHandler(m3u8Splitter);
             } else {
                 return error;

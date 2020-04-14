@@ -1,8 +1,9 @@
-package org.revo.streamer.livepoll.util;
+package org.revo.streamer.livepoll.sdp;
 
 import gov.nist.javax.sdp.MediaDescriptionImpl;
 
 import javax.sdp.SdpException;
+import javax.sdp.SdpParseException;
 import javax.sdp.SessionDescription;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,18 +24,10 @@ public class SdpElementParser {
             for (MediaDescriptionImpl it : ((ArrayList<MediaDescriptionImpl>) Collections.list(sessionDescription
                     .getMediaDescriptions(true).elements()))) {
                 if ("audio".equals(it.getMedia().getMediaType())) {
-                    String[] rtpmap = it.getAttribute("rtpmap").split(" ");
-                    if (rtpmap.length > 1) {
-                        String[] codec = rtpmap[1].split("/");
-                        sdpParser.audioElementSpecific = new ElementSpecific(codec[0], Integer.parseInt(codec[1]), new HashMap<>());
-                    }
+                    sdpParser.audioElementSpecific = parseAudio(it);
                 }
                 if ("video".equals(it.getMedia().getMediaType())) {
-                    String[] rtpmap = it.getAttribute("rtpmap").split(" ");
-                    if (rtpmap.length > 1) {
-                        String[] codec = rtpmap[1].split("/");
-                        sdpParser.videoElementSpecific = new ElementSpecific(codec[0], Integer.parseInt(codec[1]), new HashMap<>());
-                    }
+                    sdpParser.videoElementSpecific = parseVideo(it);
                 }
 
             }
@@ -46,8 +39,9 @@ public class SdpElementParser {
         return sdpParser;
     }
 
+
     public static boolean validate(SdpElementParser elementParser) {
-        return elementParser.audioElementSpecific != null && elementParser.videoElementSpecific != null;
+        return true;
     }
 
     public ElementSpecific getAudioElementSpecific() {
@@ -60,5 +54,23 @@ public class SdpElementParser {
 
     public SessionDescription getSessionDescription() {
         return sessionDescription;
+    }
+
+    private static ElementSpecific parseAudio(MediaDescriptionImpl it) throws SdpParseException {
+        String[] rtpmap = it.getAttribute("rtpmap").split(" ");
+        if (rtpmap.length > 1) {
+            String[] codec = rtpmap[1].split("/");
+            return new ElementSpecific(codec[0], Integer.parseInt(codec[1]), new HashMap<>());
+        }
+        return null;
+    }
+
+    private static ElementSpecific parseVideo(MediaDescriptionImpl it) throws SdpParseException {
+        String[] rtpmap = it.getAttribute("rtpmap").split(" ");
+        if (rtpmap.length > 1) {
+            String[] codec = rtpmap[1].split("/");
+            return new ElementSpecific(codec[0], Integer.parseInt(codec[1]), new HashMap<>());
+        }
+        return null;
     }
 }

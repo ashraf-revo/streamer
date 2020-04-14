@@ -1,7 +1,7 @@
 package org.revo.streamer.livepoll.commons.container;
 
 import org.revo.streamer.livepoll.commons.utils.TriConsumer;
-import org.revo.streamer.livepoll.util.ElementSpecific;
+import org.revo.streamer.livepoll.sdp.ElementSpecific;
 
 import java.io.Closeable;
 

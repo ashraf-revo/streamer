@@ -3,7 +3,7 @@ package org.revo.streamer.livepoll.commons.rtp;
 
 import org.revo.streamer.livepoll.commons.rtp.base.NALU;
 import org.revo.streamer.livepoll.commons.rtp.base.RtpPkt;
-import org.revo.streamer.livepoll.util.ElementSpecific;
+import org.revo.streamer.livepoll.sdp.ElementSpecific;
 
 import java.util.Arrays;
 import java.util.Base64;

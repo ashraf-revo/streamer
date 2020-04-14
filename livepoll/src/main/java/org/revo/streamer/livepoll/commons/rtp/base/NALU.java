@@ -1,7 +1,7 @@
 package org.revo.streamer.livepoll.commons.rtp.base;
 
 
-import org.revo.streamer.livepoll.util.ElementSpecific;
+import org.revo.streamer.livepoll.sdp.ElementSpecific;
 
 public class NALU extends Packet {
     private byte[] payload;

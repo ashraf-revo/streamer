@@ -1,4 +1,4 @@
-package org.revo.streamer.livepoll.util;
+package org.revo.streamer.livepoll.sdp;
 
 import gov.nist.core.StringTokenizer;
 import gov.nist.javax.sdp.MediaDescriptionImpl;

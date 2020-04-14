@@ -6,6 +6,7 @@ target/
 *.h264
 *.aac
 *.m3u8
+*.mp4
 
 ### STS ###
 .apt_generated

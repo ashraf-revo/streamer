@@ -16,7 +16,7 @@ public abstract class Splitter implements Closeable {
         this.consumer = consumer;
     }
 
-    public abstract void split(byte[] payload);
+    public abstract void split(long timeStamp, byte[] payload);
 
     public int getRequiredSeconds() {
         return requiredSeconds;

@@ -18,7 +18,7 @@ public class M3u8AudioSplitter extends Splitter {
     }
 
 
-    public void split(byte[] payload) {
+    public void split(long timeStamp, byte[] payload) {
         if (this.index.get() % maxParts == 0) {
             this.byteArrayOutputStream = new ByteArrayOutputStream();
         }

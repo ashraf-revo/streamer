@@ -3,7 +3,7 @@ package org.revo.streamer.livepoll.server.rtspHandler;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.rtsp.RtspMethods;
 import org.reactivestreams.Publisher;
-import org.revo.streamer.livepoll.codec.Services.HolderImpl;
+import org.revo.streamer.livepoll.service.HolderImpl;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.RtpPkt;
 
 import java.util.function.Function;

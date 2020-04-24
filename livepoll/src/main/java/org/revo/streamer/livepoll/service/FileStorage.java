@@ -1,4 +1,4 @@
-package org.revo.streamer.livepoll.codec.Services;
+package org.revo.streamer.livepoll.service;
 
 import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 

@@ -1,4 +1,4 @@
-package org.revo.streamer.livepoll.codec.Services;
+package org.revo.streamer.livepoll.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

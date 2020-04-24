@@ -1,6 +1,6 @@
-package org.revo.streamer.livepoll.codec.Services.Impl;
+package org.revo.streamer.livepoll.service.Impl;
 
-import org.revo.streamer.livepoll.codec.Services.FileStorage;
+import org.revo.streamer.livepoll.service.FileStorage;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;

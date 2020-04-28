@@ -1,5 +1,6 @@
 package org.revo.streamer.livepoll.codec.commons.utils;
 
+import java.io.IOException;
 import java.util.Objects;
 
 public interface TriConsumer<T, U, R> {

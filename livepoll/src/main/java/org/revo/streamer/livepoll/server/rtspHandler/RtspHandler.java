@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.util.function.Function;
 
 public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<?>> {
@@ -52,17 +53,21 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<?>> {
 //                    close(request, "not follwing rtsp seqance (OPTIONS,ANNOUNCE,SETUP,RECORD,TEARDOWN)");
     }
 
-    private Mono<?> initSession(DefaultFullHttpRequest request) {
+    private Mono<?> initSession(DefaultFullHttpRequest request){
         if (request.method() == RtspMethods.ANNOUNCE) {
             this.session = RtspSession.from(request);
             logger.info(this.session.getSdp());
             SdpElementParser parse = SdpElementParser.parse(this.session.getSessionDescription());
             if (SdpElementParser.validate(parse)) {
-                M3u8Splitter m3u8Splitter = new M3u8Splitter(2, this.session.getStreamId(),
-                        this.holderImpl.getFileStorage(), parse, (var1, var2, var3) -> {
-//                    System.out.println(var1 + "  " + var3 + " time " + var2);
-                });
-                this.rtpHandler = new RtpHandler(m3u8Splitter);
+                M3u8Splitter m3u8Splitter = null;
+                try {
+                    m3u8Splitter = new M3u8Splitter(2, this.session.getStreamId(),
+                            this.holderImpl.getFileStorage(), parse, (var1, var2, var3) -> {
+                    });
+                    this.rtpHandler = new RtpHandler(m3u8Splitter);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             } else {
                 return error;
 //                    close(request, "Sorry Unsupported Stream");

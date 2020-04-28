@@ -11,6 +11,7 @@ public class M3u8AudioSplitter extends Splitter {
     private ByteArrayOutputStream byteArrayOutputStream;
     private double maxParts;
     private AtomicInteger index = new AtomicInteger();
+    private long lastTimeStamp = 0;
 
     M3u8AudioSplitter(int requiredSeconds, ElementSpecific elementSpecific, TriConsumer<Integer, Double, byte[]> consumer) {
         super(requiredSeconds, elementSpecific, consumer);
@@ -19,6 +20,8 @@ public class M3u8AudioSplitter extends Splitter {
 
 
     public void split(long timeStamp, byte[] payload) {
+        this.lastTimeStamp = timeStamp;
+
         if (this.index.get() % maxParts == 0) {
             this.byteArrayOutputStream = new ByteArrayOutputStream();
         }

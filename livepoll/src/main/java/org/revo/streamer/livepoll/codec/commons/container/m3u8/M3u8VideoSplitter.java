@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class M3u8VideoSplitter extends Splitter {
     private AtomicInteger atomicInteger = new AtomicInteger();
     private AudCombinerTimeStampBased audCombinerTimeStampBased = new AudCombinerTimeStampBased();
+    private long lastTimeStamp = 0;
 
     public M3u8VideoSplitter(int requiredSeconds, ElementSpecific elementSpecific, TriConsumer<Integer, Double, byte[]> consumer) {
         super(requiredSeconds, elementSpecific, consumer);
@@ -19,18 +20,16 @@ public class M3u8VideoSplitter extends Splitter {
 
     @Override
     public void split(long timeStamp, byte[] payload) {
-
+        this.lastTimeStamp = timeStamp;
         audCombinerTimeStampBased.apply(timeStamp, payload).ifPresent(it -> {
-            System.out.println("handel Frame " + atomicInteger.incrementAndGet());
-            this.getConsumer().accept(0, 0.0, it);
+            this.getConsumer().accept(atomicInteger.incrementAndGet(), (double) this.lastTimeStamp, it);
         });
     }
 
     @Override
     public void close() throws IOException {
         byte[] last = this.audCombinerTimeStampBased.get();
-        System.out.println("handel Frame " + atomicInteger.incrementAndGet());
-        this.getConsumer().accept(0, 0.0, last);
+        this.getConsumer().accept(atomicInteger.incrementAndGet(),  (double) this.lastTimeStamp, last);
     }
 
     public void setSpsPps(NALU sps, NALU pps) {

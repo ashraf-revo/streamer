@@ -10,6 +10,7 @@ public class AudCombinerTimeStampBased implements BiFunction<Long, byte[], Optio
     public final static long DEFAULT_TIMESTAMP = 0L;
     private Long lastTimeStamp = 0L;
     private byte[] temp = new byte[]{};
+//    private static final byte[] aud = new byte[]{0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0};
 
     @Override
     public synchronized Optional<byte[]> apply(Long timeStamp, byte[] value) {
@@ -18,6 +19,7 @@ public class AudCombinerTimeStampBased implements BiFunction<Long, byte[], Optio
             temp = new byte[]{};
             temp = StaticProcs.join(temp, value);
             lastTimeStamp = timeStamp;
+//            return Optional.of(StaticProcs.join(ref, aud));
             return Optional.of(ref);
         } else {
             temp = StaticProcs.join(temp, value);
@@ -28,6 +30,7 @@ public class AudCombinerTimeStampBased implements BiFunction<Long, byte[], Optio
 
     @Override
     public byte[] get() {
+//        return StaticProcs.join(this.temp, aud);
         return this.temp;
     }
 }

@@ -6,7 +6,7 @@ import org.revo.streamer.livepoll.codec.sdp.ElementSpecific;
 public class NALU extends Packet {
     private byte[] payload;
     private NaluHeader naluHeader;
-    private final static byte[] header = {0x00, 0x00, 0x00, 0x01};
+    public final static byte[] header = {0x00, 0x00, 0x00, 0x01};
 
     public NALU(byte[] payload, int offset, int length, ElementSpecific specific) {
         this.payload = new byte[length - offset];

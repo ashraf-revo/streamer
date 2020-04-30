@@ -3,11 +3,11 @@ package org.revo.streamer.livepoll.server.rtspHandler;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.rtsp.RtspMethods;
-import org.revo.streamer.livepoll.service.HolderImpl;
 import org.revo.streamer.livepoll.codec.commons.container.m3u8.M3u8Splitter;
 import org.revo.streamer.livepoll.codec.rtsp.RtspSession;
 import org.revo.streamer.livepoll.codec.rtsp.action.*;
 import org.revo.streamer.livepoll.codec.sdp.SdpElementParser;
+import org.revo.streamer.livepoll.service.HolderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -38,7 +38,9 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<?>> {
             return Mono.just(new OptionsAction(request, this.session).call());
         } else if (this.state == RtspMethods.OPTIONS && request.method() == RtspMethods.ANNOUNCE) {
             this.state = RtspMethods.ANNOUNCE;
-            return initSession(request).map(it -> new AnnounceAction(request, this.session).call());
+            return initSession(request)
+                    .doOnNext(it -> this.holderImpl.getSessions().put(this.session.getId(), this.session))
+                    .map(it -> new AnnounceAction(request, this.session).call());
         } else if ((this.state == RtspMethods.ANNOUNCE || this.state == RtspMethods.SETUP) && request.method() == RtspMethods.SETUP) {
             this.state = RtspMethods.SETUP;
             return Mono.just(new SetupAction(request, this.session).call());
@@ -53,7 +55,7 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<?>> {
 //                    close(request, "not follwing rtsp seqance (OPTIONS,ANNOUNCE,SETUP,RECORD,TEARDOWN)");
     }
 
-    private Mono<?> initSession(DefaultFullHttpRequest request){
+    private Mono<?> initSession(DefaultFullHttpRequest request) {
         if (request.method() == RtspMethods.ANNOUNCE) {
             this.session = RtspSession.from(request);
             logger.info(this.session.getSdp());
@@ -61,7 +63,7 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<?>> {
             if (SdpElementParser.validate(parse)) {
                 M3u8Splitter m3u8Splitter = null;
                 try {
-                    m3u8Splitter = new M3u8Splitter(2, this.session.getStreamId(),
+                    m3u8Splitter = new M3u8Splitter(1, this.session.getStreamId(),
                             this.holderImpl.getFileStorage(), parse, (var1, var2, var3) -> {
                     });
                     this.rtpHandler = new RtpHandler(m3u8Splitter);
@@ -86,6 +88,9 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<?>> {
     }
 
     public void close() {
+        if (this.session != null && this.session.getId() != null) {
+            this.holderImpl.getSessions().remove(this.session.getId());
+        }
         rtpHandler.close();
     }
 }

@@ -22,6 +22,7 @@ public class RtspSession {
     private InterLeavedRTPSession[] rtpSessions = null;
     private SessionDescriptionImpl sd;
     private String sdp;
+    private Date createdDate;
 
     public RtspSession(String uri) {
         this.uri = uri;
@@ -29,7 +30,8 @@ public class RtspSession {
     }
 
     public static RtspSession from(DefaultFullHttpRequest request) {
-        return new RtspSession(request.uri()).withSdp(request.content().toString(StandardCharsets.UTF_8)).setStreamId(URLObject.getId(request.uri()));
+        return new RtspSession(request.uri()).withSdp(request.content().toString(StandardCharsets.UTF_8)).setStreamId(URLObject.getId(request.uri()))
+                .setCreatedDate(new Date());
     }
 
     public String getStreamId() {
@@ -57,6 +59,15 @@ public class RtspSession {
 
     public RtspSession setUri(String uri) {
         this.uri = uri;
+        return this;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public RtspSession setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
         return this;
     }
 

@@ -1,5 +1,6 @@
 package org.revo.streamer.livepoll.codec.commons.container;
 
+import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.revo.streamer.livepoll.codec.sdp.SdpElementParser;
 
 import java.io.Closeable;
@@ -15,7 +16,5 @@ public abstract class ContainerSplitter implements Closeable {
         return sdpElementParser;
     }
 
-    public abstract Splitter getM3u8AudioSplitter();
-
-    public abstract Splitter getVideoSlitter();
+    public abstract void split(MediaType mediaType, long timeStamp, byte[] data);
 }

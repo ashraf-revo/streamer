@@ -1,36 +1,36 @@
 package org.revo.streamer.livepoll.codec.commons.container.m3u8.video;
 
-import org.revo.streamer.livepoll.codec.commons.utils.StaticProcs;
-
-import java.util.Optional;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-public class AudCombinerTimeStampBased implements BiFunction<Long, byte[], Optional<byte[]>>, Supplier<byte[]> {
+public class AudCombinerTimeStampBased implements BiFunction<Long, byte[], List<byte[]>>, Supplier<List<byte[]>> {
     public final static long DEFAULT_TIMESTAMP = 0L;
     private Long lastTimeStamp = 0L;
-    private byte[] temp = new byte[]{};
-//    private static final byte[] aud = new byte[]{0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0};
+    private List<byte[]> tt = new LinkedList<>();
+
+    private static final byte[] aud = new byte[]{0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0};
 
     @Override
-    public synchronized Optional<byte[]> apply(Long timeStamp, byte[] value) {
+    public synchronized List<byte[]> apply(Long timeStamp, byte[] value) {
         if (!timeStamp.equals(lastTimeStamp) && !lastTimeStamp.equals(DEFAULT_TIMESTAMP)) {
-            byte[] ref = StaticProcs.copy(temp);
-            temp = new byte[]{};
-            temp = StaticProcs.join(temp, value);
             lastTimeStamp = timeStamp;
-//            return Optional.of(StaticProcs.join(ref, aud));
-            return Optional.of(ref);
+            tt.add(aud);
+            List<byte[]> src = new LinkedList<>(tt);
+            tt = new LinkedList<>();
+            tt.add(value);
+            return src;
         } else {
-            temp = StaticProcs.join(temp, value);
+            tt.add(value);
             lastTimeStamp = timeStamp;
-            return Optional.empty();
+            return Collections.emptyList();
         }
     }
 
     @Override
-    public byte[] get() {
-//        return StaticProcs.join(this.temp, aud);
-        return this.temp;
+    public List<byte[]> get() {
+        return this.tt;
     }
 }

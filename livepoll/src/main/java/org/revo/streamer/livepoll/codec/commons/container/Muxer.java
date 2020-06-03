@@ -5,22 +5,16 @@ import org.revo.streamer.livepoll.codec.sdp.ElementSpecific;
 
 import java.io.Closeable;
 
-public abstract class Splitter implements Closeable {
-    private int requiredSeconds;
+public abstract class Muxer implements Closeable {
     private ElementSpecific elementSpecific;
     private TriConsumer<Integer, Double, byte[]> consumer;
 
-    public Splitter(int requiredSeconds, ElementSpecific elementSpecific, TriConsumer<Integer, Double, byte[]> consumer) {
-        this.requiredSeconds = requiredSeconds;
+    public Muxer(ElementSpecific elementSpecific, TriConsumer<Integer, Double, byte[]> consumer) {
         this.elementSpecific = elementSpecific;
         this.consumer = consumer;
     }
 
-    public abstract void split(long timeStamp, byte[] payload);
-
-    public int getRequiredSeconds() {
-        return requiredSeconds;
-    }
+    public abstract void mux(long timeStamp, byte[] payload);
 
     public ElementSpecific getElementSpecific() {
         return elementSpecific;

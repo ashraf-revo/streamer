@@ -1,7 +1,5 @@
 package org.revo.streamer.livepoll.server.rtspHandler;
 
-import org.revo.streamer.livepoll.codec.commons.rtp.d.InterLeavedRTPSession;
-import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
 import org.revo.streamer.livepoll.codec.commons.rtp.Encoder;
 import org.revo.streamer.livepoll.codec.commons.rtp.RtpAdtsEncoder;
@@ -9,6 +7,8 @@ import org.revo.streamer.livepoll.codec.commons.rtp.RtpNaluEncoder;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.Adts;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.NALU;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.RtpPkt;
+import org.revo.streamer.livepoll.codec.commons.rtp.d.InterLeavedRTPSession;
+import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.revo.streamer.livepoll.codec.rtsp.RtspSession;
 import reactor.core.publisher.Mono;
 
@@ -32,15 +32,14 @@ public class RtpHandler implements BiFunction<RtpPkt, RtspSession, Mono<?>>, Clo
     public Mono<?> apply(RtpPkt rtpPkt, RtspSession session) {
         InterLeavedRTPSession rtpSession = session.getRTPSessions()[session.getStreamIndex(rtpPkt.getRtpChannle())];
         if (rtpPkt.getRtpChannle() == rtpSession.rtpChannel()) {
+
             if (rtpSession.getMediaStream().getMediaType() == MediaType.VIDEO) {
-                rtpNaluEncoder.encode(rtpPkt).forEach(it -> {
-//                    if (it.getNaluHeader().getTYPE()!=1)
-//                    System.out.println(rtpPkt.getTimeStamp()+" "+it.getNaluHeader().getTYPE());
-                    splitter.getVideoSlitter().split(rtpPkt.getTimeStamp(),it.getRaw());
-                });
+                rtpNaluEncoder.encode(rtpPkt).forEach(it ->
+                        splitter.split(rtpSession.getMediaStream().getMediaType(), rtpPkt.getTimeStamp(), it.getRaw()));
             }
             if (rtpSession.getMediaStream().getMediaType() == MediaType.AUDIO) {
-                rtpAdtsEncoder.encode(rtpPkt).forEach(it -> splitter.getM3u8AudioSplitter().split(rtpPkt.getTimeStamp(), it.getRaw()));
+                rtpAdtsEncoder.encode(rtpPkt).forEach(it ->
+                        splitter.split(rtpSession.getMediaStream().getMediaType(), rtpPkt.getTimeStamp(), it.getRaw()));
             }
         }
 

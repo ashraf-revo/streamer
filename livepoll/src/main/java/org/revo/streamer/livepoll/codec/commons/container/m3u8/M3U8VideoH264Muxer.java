@@ -2,7 +2,6 @@ package org.revo.streamer.livepoll.codec.commons.container.m3u8;
 
 import org.revo.streamer.livepoll.codec.commons.container.Muxer;
 import org.revo.streamer.livepoll.codec.commons.container.m3u8.video.AudCombinerTimeStampBased;
-import org.revo.streamer.livepoll.codec.commons.container.m3u8.video.mpeg2ts.TsWriter;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.NALU;
 import org.revo.streamer.livepoll.codec.commons.utils.TriConsumer;
 import org.revo.streamer.livepoll.codec.sdp.ElementSpecific;
@@ -14,7 +13,6 @@ public class M3U8VideoH264Muxer extends Muxer {
     private final AtomicInteger atomicInteger = new AtomicInteger();
     private final AudCombinerTimeStampBased audCombinerTimeStampBased = new AudCombinerTimeStampBased();
     private long lastTimeStamp = 0;
-    private TsWriter tsWriter;
     private boolean isFirstPes = true;
     private NALU sps;
     private NALU pps;
@@ -22,7 +20,6 @@ public class M3U8VideoH264Muxer extends Muxer {
 
     public M3U8VideoH264Muxer(int requiredSeconds, ElementSpecific elementSpecific, TriConsumer<Integer, Double, byte[]> consumer) {
         super(elementSpecific, consumer);
-        this.tsWriter = new TsWriter();
     }
 
     @Override

@@ -3,7 +3,6 @@ package org.revo.streamer.livepoll.codec.commons.container.m3u8;
 import io.lindstrom.m3u8.model.MediaPlaylist;
 import io.lindstrom.m3u8.parser.MediaPlaylistParser;
 import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
-import org.revo.streamer.livepoll.codec.commons.container.Muxer;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.revo.streamer.livepoll.codec.commons.utils.TriConsumer;
 import org.revo.streamer.livepoll.codec.sdp.SdpElementParser;
@@ -18,7 +17,6 @@ import static org.revo.streamer.livepoll.codec.commons.rtp.RtpUtil.toNalu;
 public class M3u8Splitter extends ContainerSplitter {
 
     private M3U8AudioMuxer m3u8AudioSplitter;
-    private final M3U8VideoTSMuxer m3U8VideoTSMuxer;
     private final M3U8VideoH264Muxer m3U8VideoH264Muxer;
     private final static int version = 4;
 
@@ -37,14 +35,6 @@ public class M3u8Splitter extends ContainerSplitter {
                 fileStorage.append(streamId, MediaType.AUDIO, getMediaSegment(time, path));
                 notifier.accept(MediaType.AUDIO, time, path);
             });
-        this.m3U8VideoTSMuxer = new M3U8VideoTSMuxer(requiredSeconds, this.getSdpElementParser().getAudioElementSpecific(), (index, time, bytes) -> {
-            String path = "playlist/" + streamId + "/video" + /*index +*/ ".ts";
-            fileStorage.store(path, bytes, true);
-//            fileStorage.append(streamId, MediaType.VIDEO, getMediaSegment(time, path));
-            notifier.accept(MediaType.VIDEO, time, path);
-
-        });
-
         this.m3U8VideoH264Muxer = new M3U8VideoH264Muxer(requiredSeconds, this.getSdpElementParser().getAudioElementSpecific(), (index, time, bytes) -> {
             String path = "playlist/" + streamId + "/video" + /*index +*/ ".h264";
             fileStorage.store(path, bytes, true);
@@ -55,7 +45,6 @@ public class M3u8Splitter extends ContainerSplitter {
                 .stream().map(its -> Arrays.asList(its.split(",")))
                 .filter(it -> it.size() == 2)
                 .forEach(it -> {
-                    this.m3U8VideoTSMuxer.setSpsPps(toNalu(it.get(0), sdpElementParser.getVideoElementSpecific()), toNalu(it.get(1), sdpElementParser.getVideoElementSpecific()));
                     this.m3U8VideoH264Muxer.setSpsPps(toNalu(it.get(0), sdpElementParser.getVideoElementSpecific()), toNalu(it.get(1), sdpElementParser.getVideoElementSpecific()));
                 });
     }
@@ -78,7 +67,6 @@ public class M3u8Splitter extends ContainerSplitter {
     @Override
     public void close() {
         this.m3u8AudioSplitter.close();
-        this.m3U8VideoTSMuxer.close();
         this.m3U8VideoH264Muxer.close();
     }
 
@@ -88,7 +76,6 @@ public class M3u8Splitter extends ContainerSplitter {
             this.m3u8AudioSplitter.mux(timeStamp, data);
         }
         if (mediaType == MediaType.VIDEO) {
-            this.m3U8VideoTSMuxer.mux(timeStamp, data);
             this.m3U8VideoH264Muxer.mux(timeStamp, data);
         }
     }

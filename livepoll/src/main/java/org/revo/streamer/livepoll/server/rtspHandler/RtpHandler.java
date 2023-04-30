@@ -1,10 +1,11 @@
 package org.revo.streamer.livepoll.server.rtspHandler;
 
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
-import org.revo.streamer.livepoll.codec.commons.rtp.Encoder;
-import org.revo.streamer.livepoll.codec.commons.rtp.RtpAdtsEncoder;
-import org.revo.streamer.livepoll.codec.commons.rtp.RtpNaluEncoder;
-import org.revo.streamer.livepoll.codec.commons.rtp.base.Adts;
+import org.revo.streamer.livepoll.codec.commons.rtp.Decoder;
+import org.revo.streamer.livepoll.codec.commons.rtp.RtpADTSDecoder;
+import org.revo.streamer.livepoll.codec.commons.rtp.RtpNALUDecoder;
+import org.revo.streamer.livepoll.codec.commons.rtp.base.ADTS;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.NALU;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.RtpPkt;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.InterLeavedRTPSession;
@@ -16,29 +17,29 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.function.BiFunction;
 
-public class RtpHandler implements BiFunction<RtpPkt, RtspSession, Mono<?>>, Closeable {
-    private Encoder<RtpPkt, NALU> rtpNaluEncoder;
-    private Encoder<RtpPkt, Adts> rtpAdtsEncoder;
-    private Mono<?> empty = Mono.empty();
-    private ContainerSplitter splitter;
+public class RtpHandler implements BiFunction<RtpPkt, RtspSession, Mono<DefaultFullHttpResponse>>, Closeable {
+    private final Decoder<RtpPkt, NALU> rtpNaluDecoder;
+    private final Decoder<RtpPkt, ADTS> rtpAdtsDecoder;
+    private final Mono<DefaultFullHttpResponse> empty = Mono.empty();
+    private final ContainerSplitter splitter;
 
     RtpHandler(ContainerSplitter splitter) {
         this.splitter = splitter;
-        this.rtpNaluEncoder = new RtpNaluEncoder(this.splitter.getSdpElementParser().getVideoElementSpecific());
-        this.rtpAdtsEncoder = new RtpAdtsEncoder(this.splitter.getSdpElementParser().getAudioElementSpecific());
+        this.rtpNaluDecoder = new RtpNALUDecoder(this.splitter.getSdpElementParser().getVideoElementSpecific());
+        this.rtpAdtsDecoder = new RtpADTSDecoder(this.splitter.getSdpElementParser().getAudioElementSpecific());
     }
 
     @Override
-    public Mono<?> apply(RtpPkt rtpPkt, RtspSession session) {
+    public Mono<DefaultFullHttpResponse> apply(RtpPkt rtpPkt, RtspSession session) {
         InterLeavedRTPSession rtpSession = session.getRTPSessions()[session.getStreamIndex(rtpPkt.getRtpChannle())];
         if (rtpPkt.getRtpChannle() == rtpSession.rtpChannel()) {
 
             if (rtpSession.getMediaStream().getMediaType() == MediaType.VIDEO) {
-                rtpNaluEncoder.encode(rtpPkt).forEach(it ->
+                rtpNaluDecoder.decode(rtpPkt).forEach(it ->
                         splitter.split(rtpSession.getMediaStream().getMediaType(), rtpPkt.getTimeStamp(), it.getRaw()));
             }
             if (rtpSession.getMediaStream().getMediaType() == MediaType.AUDIO) {
-                rtpAdtsEncoder.encode(rtpPkt).forEach(it ->
+                rtpAdtsDecoder.decode(rtpPkt).forEach(it ->
                         splitter.split(rtpSession.getMediaStream().getMediaType(), rtpPkt.getTimeStamp(), it.getRaw()));
             }
         }

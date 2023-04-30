@@ -1,6 +1,7 @@
 package org.revo.streamer.livepoll.server.rtspHandler;
 
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.rtsp.RtspMethods;
 import org.revo.streamer.livepoll.codec.commons.container.m3u8.M3u8Splitter;
@@ -15,11 +16,11 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 import java.util.function.Function;
 
-public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<?>> {
+public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<DefaultFullHttpResponse>> {
     private RtpHandler rtpHandler;
     private HttpMethod state;
     private RtspSession session;
-    final Mono<?> error = Mono.error(RuntimeException::new);
+    private final Mono<DefaultFullHttpResponse> error = Mono.error(RuntimeException::new);
     private HolderImpl holderImpl;
     private final Logger logger = LoggerFactory.getLogger(RtspHandler.class);
 
@@ -32,7 +33,7 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<?>> {
     }
 
     @Override
-    public Mono<?> apply(DefaultFullHttpRequest request) {
+    public Mono<DefaultFullHttpResponse> apply(DefaultFullHttpRequest request) {
         if (request.method() == RtspMethods.OPTIONS) {
             this.state = RtspMethods.OPTIONS;
             return Mono.just(new OptionsAction(request, this.session).call());

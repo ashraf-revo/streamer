@@ -57,5 +57,6 @@
     </build>
     <modules>
         <module>livepoll</module>
+        <module>livepoll-codec</module>
     </modules>
 </project>

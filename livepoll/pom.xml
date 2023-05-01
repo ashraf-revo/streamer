@@ -67,21 +67,6 @@
             <version>0.2.5</version>
         </dependency>
         <dependency>
-            <groupId>org.mp4parser</groupId>
-            <artifactId>isoparser</artifactId>
-            <version>1.9.41</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mp4parser</groupId>
-            <artifactId>muxer</artifactId>
-            <version>1.9.41</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mp4parser</groupId>
-            <artifactId>streaming</artifactId>
-            <version>1.9.41</version>
-        </dependency>
-        <dependency>
             <groupId>io.lindstrom</groupId>
             <artifactId>mpd-parser</artifactId>
             <version>0.8</version>

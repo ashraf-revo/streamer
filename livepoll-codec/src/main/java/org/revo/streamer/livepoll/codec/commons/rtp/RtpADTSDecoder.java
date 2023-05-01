@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 import static org.revo.streamer.livepoll.codec.commons.utils.StaticProcs.bytesToUIntInt;
 
-public class RtpADTSDecoder implements Decoder<RtpPkt, ADTS> {
+public class RtpADTSDecoder implements Converter<RtpPkt, List<ADTS>> {
     private final RtpToADTSFrame rtpToAdtsFrame = new RtpToADTSFrame();
     private final ElementSpecific specific;
 
@@ -20,7 +20,7 @@ public class RtpADTSDecoder implements Decoder<RtpPkt, ADTS> {
     }
 
     @Override
-    public List<ADTS> decode(RtpPkt rtpPkt) {
+    public List<ADTS> convert(RtpPkt rtpPkt) {
         return rtpToAdtsFrame.apply(rtpPkt);
     }
 

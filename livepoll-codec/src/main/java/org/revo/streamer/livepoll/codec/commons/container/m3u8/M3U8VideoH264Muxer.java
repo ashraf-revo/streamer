@@ -11,9 +11,7 @@ import java.util.function.Consumer;
 
 public class M3U8VideoH264Muxer extends Muxer {
     private final AtomicInteger atomicInteger = new AtomicInteger();
-    private final AudCombinerTimeStampBased audCombinerTimeStampBased = new AudCombinerTimeStampBased();
     private long lastTimeStamp = 0;
-    private final boolean isFirstPes = true;
     private NALU sps;
     private NALU pps;
     private final Consumer<byte[]> consumer = it -> this.getConsumer().accept(atomicInteger.incrementAndGet(), (double) this.lastTimeStamp, it);
@@ -25,12 +23,11 @@ public class M3U8VideoH264Muxer extends Muxer {
     @Override
     public void mux(long timeStamp, byte[] payload) {
         this.lastTimeStamp = timeStamp;
-        audCombinerTimeStampBased.apply(timeStamp, payload).forEach(this.consumer);
+        this.consumer.accept(payload);
     }
 
     @Override
     public void close() {
-        this.audCombinerTimeStampBased.get().forEach(this.consumer);
     }
 
     public void setSpsPps(NALU sps, NALU pps) {

@@ -12,7 +12,7 @@ import java.util.function.Function;
 
 import static org.revo.streamer.livepoll.codec.commons.utils.StaticProcs.bytesToUIntInt;
 
-public class RtpNALUDecoder implements Decoder<RtpPkt, NALU> {
+public class RtpNALUDecoder implements Converter<RtpPkt, List<NALU>> {
     private final int SINGLE_NALU = 23;
     private final int STAP_A = 24;
     private final int FU_A = 28;
@@ -25,7 +25,7 @@ public class RtpNALUDecoder implements Decoder<RtpPkt, NALU> {
     }
 
     @Override
-    public List<NALU> decode(RtpPkt rtpPkt) {
+    public List<NALU> convert(RtpPkt rtpPkt) {
         return rtpToNalu.apply(rtpPkt);
     }
 

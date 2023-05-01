@@ -2,7 +2,7 @@ package org.revo.streamer.livepoll.server.rtspHandler;
 
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
-import org.revo.streamer.livepoll.codec.commons.rtp.Decoder;
+import org.revo.streamer.livepoll.codec.commons.rtp.Converter;
 import org.revo.streamer.livepoll.codec.commons.rtp.RtpADTSDecoder;
 import org.revo.streamer.livepoll.codec.commons.rtp.RtpNALUDecoder;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.ADTS;
@@ -15,13 +15,16 @@ import reactor.core.publisher.Mono;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 import java.util.function.BiFunction;
 
 public class RtpHandler implements BiFunction<RtpPkt, RtspSession, Mono<DefaultFullHttpResponse>>, Closeable {
-    private final Decoder<RtpPkt, NALU> rtpNaluDecoder;
-    private final Decoder<RtpPkt, ADTS> rtpAdtsDecoder;
+    private final Converter<RtpPkt, List<NALU>> rtpNaluDecoder;
+    private final Converter<RtpPkt, List<ADTS>> rtpAdtsDecoder;
     private final Mono<DefaultFullHttpResponse> empty = Mono.empty();
     private final ContainerSplitter splitter;
+    private static final byte[] aud = new byte[]{0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0};
+    private long lastTimeStamp = 0;
 
     RtpHandler(ContainerSplitter splitter) {
         this.splitter = splitter;
@@ -35,15 +38,21 @@ public class RtpHandler implements BiFunction<RtpPkt, RtspSession, Mono<DefaultF
         if (rtpPkt.getRtpChannle() == rtpSession.rtpChannel()) {
 
             if (rtpSession.getMediaStream().getMediaType() == MediaType.VIDEO) {
-                rtpNaluDecoder.decode(rtpPkt).forEach(it ->
+                if (lastTimeStamp != rtpPkt.getTimeStamp()) {
+                    splitter.split(rtpSession.getMediaStream().getMediaType(), rtpPkt.getTimeStamp(), aud);
+                }
+                List<NALU> naluList = rtpNaluDecoder.convert(rtpPkt);
+                naluList.forEach(it ->
                         splitter.split(rtpSession.getMediaStream().getMediaType(), rtpPkt.getTimeStamp(), it.getRaw()));
             }
             if (rtpSession.getMediaStream().getMediaType() == MediaType.AUDIO) {
-                rtpAdtsDecoder.decode(rtpPkt).forEach(it ->
+                List<ADTS> adtsList = rtpAdtsDecoder.convert(rtpPkt);
+
+                adtsList.forEach(it ->
                         splitter.split(rtpSession.getMediaStream().getMediaType(), rtpPkt.getTimeStamp(), it.getRaw()));
             }
         }
-
+        this.lastTimeStamp = rtpPkt.getTimeStamp();
         return empty;
     }
 

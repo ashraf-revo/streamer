@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 import java.util.function.Function;
 
 public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<DefaultFullHttpResponse>> {
-    private RtpHandler rtpHandler;
+    private RtpH264AacHandler rtpH264AacHandler;
     private HttpMethod state;
     private RtspSession session;
     private final Mono<DefaultFullHttpResponse> error = Mono.error(RuntimeException::new);
@@ -27,8 +27,8 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
         this.holderImpl = holderImpl;
     }
 
-    RtpHandler getRtpHandler() {
-        return rtpHandler;
+    RtpH264AacHandler getRtpHandler() {
+        return rtpH264AacHandler;
     }
 
     @Override
@@ -64,7 +64,7 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
                 M3u8Splitter m3u8Splitter= new M3u8Splitter(1, this.session.getStreamId(),
                         this.holderImpl.getFileStorage(), parse, (var1, var2, var3) -> {
                 });
-                this.rtpHandler = new RtpHandler(m3u8Splitter);
+                this.rtpH264AacHandler = new RtpH264AacHandler(m3u8Splitter);
             } else {
                 return error;
 //                    close(request, "Sorry Unsupported Stream");
@@ -86,6 +86,6 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
         if (this.session != null && this.session.getId() != null) {
             this.holderImpl.getSessions().remove(this.session.getId());
         }
-        rtpHandler.close();
+        rtpH264AacHandler.close();
     }
 }

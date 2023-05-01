@@ -6,12 +6,7 @@ import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.revo.streamer.livepoll.codec.commons.utils.TriConsumer;
 import org.revo.streamer.livepoll.codec.sdp.SdpElementParser;
-import org.revo.streamer.livepoll.codec.sdp.SdpUtil;
 import org.revo.streamer.livepoll.service.FileStorage;
-
-import java.util.Arrays;
-
-import static org.revo.streamer.livepoll.codec.commons.rtp.RtpUtil.toNalu;
 
 public class M3u8Splitter extends ContainerSplitter {
 
@@ -39,13 +34,6 @@ public class M3u8Splitter extends ContainerSplitter {
             fileStorage.store(path, bytes, true);
             notifier.accept(MediaType.VIDEO, time, path);
         });
-
-        SdpUtil.getSpropParameter(this.getSdpElementParser().getSessionDescription())
-                .stream().map(its -> Arrays.asList(its.split(",")))
-                .filter(it -> it.size() == 2)
-                .forEach(it -> {
-                    this.m3U8VideoH264Muxer.setSpsPps(toNalu(it.get(0), sdpElementParser.getVideoElementSpecific()), toNalu(it.get(1), sdpElementParser.getVideoElementSpecific()));
-                });
     }
 
 

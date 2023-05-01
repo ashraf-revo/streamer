@@ -9,7 +9,6 @@ import org.revo.streamer.livepoll.codec.sdp.SdpElementParser;
 import org.revo.streamer.livepoll.codec.sdp.SdpUtil;
 import org.revo.streamer.livepoll.service.FileStorage;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 import static org.revo.streamer.livepoll.codec.commons.rtp.RtpUtil.toNalu;
@@ -20,7 +19,7 @@ public class M3u8Splitter extends ContainerSplitter {
     private final M3U8VideoH264Muxer m3U8VideoH264Muxer;
     private final static int version = 4;
 
-    public M3u8Splitter(int requiredSeconds, String streamId, FileStorage fileStorage, SdpElementParser sdpElementParser, TriConsumer<MediaType, Double, String> notifier) throws IOException {
+    public M3u8Splitter(int requiredSeconds, String streamId, FileStorage fileStorage, SdpElementParser sdpElementParser, TriConsumer<MediaType, Double, String> notifier) {
         super(sdpElementParser);
         if (sdpElementParser.getVideoElementSpecific() != null) {
             fileStorage.write(streamId, MediaType.VIDEO, getInitSegment(version, requiredSeconds));

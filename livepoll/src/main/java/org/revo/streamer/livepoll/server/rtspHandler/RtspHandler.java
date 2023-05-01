@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.util.function.Function;
 
 public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<DefaultFullHttpResponse>> {
@@ -62,15 +61,10 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
             logger.info(this.session.getSdp());
             SdpElementParser parse = SdpElementParser.parse(this.session.getSessionDescription());
             if (SdpElementParser.validate(parse)) {
-                M3u8Splitter m3u8Splitter = null;
-                try {
-                    m3u8Splitter = new M3u8Splitter(1, this.session.getStreamId(),
-                            this.holderImpl.getFileStorage(), parse, (var1, var2, var3) -> {
-                    });
-                    this.rtpHandler = new RtpHandler(m3u8Splitter);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                M3u8Splitter m3u8Splitter= new M3u8Splitter(1, this.session.getStreamId(),
+                        this.holderImpl.getFileStorage(), parse, (var1, var2, var3) -> {
+                });
+                this.rtpHandler = new RtpHandler(m3u8Splitter);
             } else {
                 return error;
 //                    close(request, "Sorry Unsupported Stream");

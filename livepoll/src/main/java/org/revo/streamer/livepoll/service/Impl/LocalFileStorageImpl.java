@@ -45,7 +45,7 @@ public class LocalFileStorageImpl implements FileStorage {
     @Override
     public void write(String streamId, MediaType mediaType, String initSegment) {
         try {
-            OutputStream os = new FileOutputStream(new File(this.resourceLoader.getResource("classpath:static").getFile() + "/" + streamId + "." + mediaType + ".m3u8"), false);
+            OutputStream os = new FileOutputStream(this.resourceLoader.getResource("classpath:static").getFile() + "/" + streamId + "." + mediaType + ".m3u8", false);
             os.write(initSegment.getBytes(), 0, initSegment.length());
             os.close();
         } catch (IOException e) {

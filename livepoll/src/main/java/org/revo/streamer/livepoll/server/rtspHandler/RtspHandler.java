@@ -20,7 +20,7 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
     private HttpMethod state;
     private RtspSession session;
     private final Mono<DefaultFullHttpResponse> error = Mono.error(RuntimeException::new);
-    private HolderImpl holderImpl;
+    private final HolderImpl holderImpl;
     private final Logger logger = LoggerFactory.getLogger(RtspHandler.class);
 
     RtspHandler(HolderImpl holderImpl) {

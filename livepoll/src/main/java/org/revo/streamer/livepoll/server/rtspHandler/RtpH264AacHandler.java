@@ -5,10 +5,7 @@ import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
 import org.revo.streamer.livepoll.codec.commons.rtp.Converter;
 import org.revo.streamer.livepoll.codec.commons.rtp.RtpADTSDecoder;
 import org.revo.streamer.livepoll.codec.commons.rtp.RtpNALUDecoder;
-import org.revo.streamer.livepoll.codec.commons.rtp.base.ADTS;
-import org.revo.streamer.livepoll.codec.commons.rtp.base.NALU;
-import org.revo.streamer.livepoll.codec.commons.rtp.base.Raw;
-import org.revo.streamer.livepoll.codec.commons.rtp.base.RtpPkt;
+import org.revo.streamer.livepoll.codec.commons.rtp.base.*;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.InterLeavedRTPSession;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.revo.streamer.livepoll.codec.rtsp.RtspSession;
@@ -61,7 +58,7 @@ public class RtpH264AacHandler implements BiFunction<RtpPkt, RtspSession, Mono<D
         return empty;
     }
 
-    private <T extends Raw> void callSplitter(long timeStamp, MediaType mediaType, List<T> naluList) {
+    private <T extends Packet> void callSplitter(long timeStamp, MediaType mediaType, List<T> naluList) {
         splitter.split(mediaType, timeStamp, naluList);
     }
 

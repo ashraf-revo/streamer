@@ -1,4 +1,4 @@
-package org.revo.streamer.livepoll.codec.commons.container.m3u8;
+package org.revo.streamer.livepoll.codec.commons.container.m3u8.audio;
 
 import org.revo.streamer.livepoll.codec.commons.container.Muxer;
 import org.revo.streamer.livepoll.codec.commons.utils.TriConsumer;
@@ -12,7 +12,7 @@ public class M3U8AudioMuxer extends Muxer {
     private final double maxParts;
     private final AtomicInteger index = new AtomicInteger();
 
-    M3U8AudioMuxer(int requiredSeconds, ElementSpecific elementSpecific, TriConsumer<Integer, Double, byte[]> consumer) {
+    public M3U8AudioMuxer(int requiredSeconds, ElementSpecific elementSpecific, TriConsumer<Integer, Double, byte[]> consumer) {
         super(elementSpecific, consumer);
         this.maxParts = Double.valueOf(Math.floor((double) (requiredSeconds * elementSpecific.clockRate()) / (double) 1024)).intValue();
     }

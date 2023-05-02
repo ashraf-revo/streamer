@@ -1,4 +1,4 @@
-package org.revo.streamer.livepoll.codec.commons.container.m3u8;
+package org.revo.streamer.livepoll.codec.commons.container.m3u8.video;
 
 import org.revo.streamer.livepoll.codec.commons.container.Muxer;
 import org.revo.streamer.livepoll.codec.commons.utils.TriConsumer;

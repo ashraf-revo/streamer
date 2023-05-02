@@ -12,4 +12,4 @@
 - https://github.com/fecloud/H264Parse
 - https://github.com/fyhertz/libstreaming
 - https://github.com/wangdxh/netty-stream
-- https://github.com/variflight/feeyo-hlsserver
+- https://github.com/jing5877/feeyo-hlsserver

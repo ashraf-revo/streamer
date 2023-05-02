@@ -1,45 +1,41 @@
 package org.revo.streamer.livepoll.mpeg2ts.commons.container.m3u8;
 
+import org.mp4parser.streaming.input.h264.H264AnnexBTrack.NalStreamTokenizer;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 public class M3u8SplitterTest {
 
     public static void main(String[] args) throws IOException {
 
-        int streamId = 555;
         SimpleLocalFileStorageImpl storage = new SimpleLocalFileStorageImpl();
-        Path baseDumbPath = Paths.get("livepoll-ts", "src", "test", "resources", "static", "dumb");
-        List<String> dumb = Files.readAllLines(baseDumbPath.resolve("index.txt"));
+        Path baseDumbPath = Paths.get("livepoll-mpeg2ts", "src", "test", "resources", "static");
         TSMuxer tsMuxer = new TSMuxer(10, (var1, var2, bytes) -> {
-            String path = "playlist/" + streamId + "/video" + /*index +*/ ".ts";
+            String path = "video-ts" + /*index +*/ ".ts";
             storage.store(path, bytes, true);
         });
-        streamH264NALUFiles(baseDumbPath, dumb, tsMuxer);
+        NalStreamTokenizer st = new NalStreamTokenizer(new FileInputStream(baseDumbPath.resolve("video.h264").toFile()));
+        byte[] nal;
+        while ((nal = st.getNext()) != null) {
+            tsMuxer.mux(0, addPrefix(nal));
+        }
         tsMuxer.close();
+
     }
 
-    private static void streamH264NALUFiles(Path baseDumbPath, List<String> dumb, TSMuxer tsMuxer) {
-        dumb.stream()
-                .map(it -> it.split("-"))
-                .filter(it -> it.length == 3)
-                .map(it -> new DumbStream(it[0], Long.parseLong(it[1]), it[2]))
-                .forEach(it -> {
-                    try {
-                        if (it.mediaType().equals("VIDEO")) {
-                            byte[] bytes = Files.readAllBytes(baseDumbPath.resolve(it.file()));
-                            tsMuxer.mux(it.timeStamp(), bytes);
-                        }
-                    } catch (IOException e) {
-                        System.out.println(e.getMessage());
-                    }
-                });
+    static byte[] addPrefix(byte[] nal) {
+        byte[] result = new byte[nal.length + 4];
+        result[0] = 0x0;
+        result[1] = 0x0;
+        result[2] = 0x0;
+        result[3] = 0x1;
+        System.arraycopy(nal, 0, result, 4, nal.length);
+        return result;
     }
 
 
@@ -50,7 +46,7 @@ class SimpleLocalFileStorageImpl {
 
     public void store(String path, byte[] payload, boolean append) {
         try {
-            Path staticDir = Paths.get("livepoll-codec", "src", "test", "resources", "static");
+            Path staticDir = Paths.get("livepoll-mpeg2ts", "src", "test", "resources", "static");
             Path storedPath = staticDir.resolve(path);
             File stored = storedPath.toFile();
             stored.getParentFile().getParentFile().mkdir();
@@ -63,32 +59,6 @@ class SimpleLocalFileStorageImpl {
         }
     }
 
-    public void append(String streamId, String mediaType, String mediaSegment) {
-        try {
-            Path staticDir = Paths.get("livepoll-codec", "src", "test", "resources", "static");
-            Path storedPath = staticDir.resolve(streamId + "." + mediaType + ".m3u8");
-            File stored = storedPath.toFile();
-            OutputStream os = new FileOutputStream(stored, true);
-            os.write(mediaSegment.getBytes(), 0, mediaSegment.length());
-            os.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    public void write(String streamId, String mediaType, String initSegment) {
-        try {
-            Path staticDir = Paths.get("livepoll-codec", "src", "test", "resources", "static");
-            Path storedPath = staticDir.resolve(streamId + "." + mediaType + ".m3u8");
-            File stored = storedPath.toFile();
-            OutputStream os = new FileOutputStream(stored, false);
-            os.write(initSegment.getBytes(), 0, initSegment.length());
-            os.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
 
 record DumbStream(String mediaType, long timeStamp, String file) {

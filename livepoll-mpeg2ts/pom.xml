@@ -6,6 +6,13 @@
     <version>0.0.1</version>
     <name>livepoll-mpeg2ts</name>
     <url>http://maven.apache.org</url>
+    <dependencies>
+        <dependency>
+            <groupId>org.mp4parser</groupId>
+            <artifactId>streaming</artifactId>
+            <version>1.9.56</version>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>

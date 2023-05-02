@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 
 @Getter
 public class SessionsAggregatorInfo {
-    private int count;
-    private List<SessionInfo> sessionInfos;
+    private final int count;
+    private final List<SessionInfo> sessionInfos;
 
     public SessionsAggregatorInfo(Map<String, RtspSession> sessions) {
         this.count = sessions.size();

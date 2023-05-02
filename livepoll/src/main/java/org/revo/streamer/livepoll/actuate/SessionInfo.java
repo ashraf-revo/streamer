@@ -7,10 +7,10 @@ import java.util.Date;
 
 @Getter
 public class SessionInfo {
-    private String id;
-    private String streamId;
-    private String uri;
-    private Date createdDate;
+    private final String id;
+    private final String streamId;
+    private final String uri;
+    private final Date createdDate;
 
 
     public SessionInfo(RtspSession rtspSession) {

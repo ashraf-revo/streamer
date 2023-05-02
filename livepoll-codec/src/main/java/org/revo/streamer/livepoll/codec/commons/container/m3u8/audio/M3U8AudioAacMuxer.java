@@ -7,12 +7,12 @@ import org.revo.streamer.livepoll.codec.sdp.ElementSpecific;
 import java.io.ByteArrayOutputStream;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class M3U8AudioMuxer extends Muxer {
+public class M3U8AudioAacMuxer extends Muxer {
     private ByteArrayOutputStream byteArrayOutputStream;
     private final double maxParts;
     private final AtomicInteger index = new AtomicInteger();
 
-    public M3U8AudioMuxer(int requiredSeconds, ElementSpecific elementSpecific, TriConsumer<Integer, Double, byte[]> consumer) {
+    public M3U8AudioAacMuxer(int requiredSeconds, ElementSpecific elementSpecific, TriConsumer<Integer, Double, byte[]> consumer) {
         super(elementSpecific, consumer);
         this.maxParts = Double.valueOf(Math.floor((double) (requiredSeconds * elementSpecific.clockRate()) / (double) 1024)).intValue();
     }

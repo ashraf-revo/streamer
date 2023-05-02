@@ -3,8 +3,9 @@ package org.revo.streamer.livepoll.codec.commons.container.m3u8;
 import io.lindstrom.m3u8.model.MediaPlaylist;
 import io.lindstrom.m3u8.parser.MediaPlaylistParser;
 import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
-import org.revo.streamer.livepoll.codec.commons.container.m3u8.audio.M3U8AudioAacMuxer;
-import org.revo.streamer.livepoll.codec.commons.container.m3u8.video.M3U8VideoH264Muxer;
+import org.revo.streamer.livepoll.codec.commons.container.m3u8.audio.AacMuxer;
+import org.revo.streamer.livepoll.codec.commons.container.m3u8.video.H264Muxer;
+import org.revo.streamer.livepoll.codec.commons.container.m3u8.video.TSMuxer;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.revo.streamer.livepoll.codec.commons.utils.TriConsumer;
 import org.revo.streamer.livepoll.codec.sdp.SdpElementParser;
@@ -12,8 +13,10 @@ import org.revo.streamer.livepoll.service.FileStorage;
 
 public class M3u8Splitter extends ContainerSplitter {
 
-    private M3U8AudioAacMuxer m3u8AudioSplitter;
-    private final M3U8VideoH264Muxer m3U8VideoH264Muxer;
+    private AacMuxer m3u8AudioSplitter;
+    private H264Muxer h264Muxer;
+    private TSMuxer TSMuxer;
+
     private final static int version = 4;
 
     public M3u8Splitter(int requiredSeconds, String streamId, FileStorage fileStorage, SdpElementParser sdpElementParser, TriConsumer<MediaType, Double, String> notifier) {
@@ -25,17 +28,26 @@ public class M3u8Splitter extends ContainerSplitter {
             fileStorage.write(streamId, MediaType.AUDIO, getInitSegment(version, requiredSeconds));
         }
         if (this.getSdpElementParser().getAudioElementSpecific() != null)
-            this.m3u8AudioSplitter = new M3U8AudioAacMuxer(requiredSeconds, this.getSdpElementParser().getAudioElementSpecific(), (index, time, bytes) -> {
+            this.m3u8AudioSplitter = new AacMuxer(requiredSeconds, this.getSdpElementParser().getAudioElementSpecific(), (index, time, bytes) -> {
                 String path = "playlist/" + streamId + "/audio" + index + ".aac";
                 fileStorage.store(path, bytes, false);
                 fileStorage.append(streamId, MediaType.AUDIO, getMediaSegment(time, path));
                 notifier.accept(MediaType.AUDIO, time, path);
             });
-        this.m3U8VideoH264Muxer = new M3U8VideoH264Muxer(requiredSeconds, this.getSdpElementParser().getAudioElementSpecific(), (index, time, bytes) -> {
-            String path = "playlist/" + streamId + "/video" + /*index +*/ ".h264";
-            fileStorage.store(path, bytes, true);
-            notifier.accept(MediaType.VIDEO, time, path);
-        });
+        if (this.getSdpElementParser().getVideoElementSpecific() != null)
+            this.h264Muxer = new H264Muxer(requiredSeconds, this.getSdpElementParser().getAudioElementSpecific(), (index, time, bytes) -> {
+                String path = "playlist/" + streamId + "/video" + /*index +*/ ".h264";
+                fileStorage.store(path, bytes, true);
+                notifier.accept(MediaType.VIDEO, time, path);
+            });
+        if (this.getSdpElementParser().getVideoElementSpecific() != null)
+            this.TSMuxer = new TSMuxer(requiredSeconds, this.getSdpElementParser().getAudioElementSpecific(), (index, time, bytes) -> {
+                String path = "playlist/" + streamId + "/video" + /*index +*/ ".ts";
+                fileStorage.store(path, bytes, true);
+//            fileStorage.append(streamId, MediaType.VIDEO, getMediaSegment(time, path));
+                notifier.accept(MediaType.VIDEO, time, path);
+
+            });
     }
 
 
@@ -56,7 +68,8 @@ public class M3u8Splitter extends ContainerSplitter {
     @Override
     public void close() {
         this.m3u8AudioSplitter.close();
-        this.m3U8VideoH264Muxer.close();
+        this.h264Muxer.close();
+        this.TSMuxer.close();
     }
 
     @Override
@@ -65,7 +78,10 @@ public class M3u8Splitter extends ContainerSplitter {
             this.m3u8AudioSplitter.mux(timeStamp, data);
         }
         if (mediaType == MediaType.VIDEO) {
-            this.m3U8VideoH264Muxer.mux(timeStamp, data);
+            this.h264Muxer.mux(timeStamp, data);
+        }
+        if (mediaType == MediaType.VIDEO) {
+            this.TSMuxer.mux(timeStamp, data);
         }
     }
 }

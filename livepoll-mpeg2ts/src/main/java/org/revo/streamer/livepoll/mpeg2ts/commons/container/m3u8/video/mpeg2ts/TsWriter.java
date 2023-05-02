@@ -1,4 +1,4 @@
-package org.revo.streamer.livepoll.codec.commons.container.m3u8.video.mpeg2ts;
+package org.revo.streamer.livepoll.mpeg2ts.commons.container.m3u8.video.mpeg2ts;
 
 
 /**

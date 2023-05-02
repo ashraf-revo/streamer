@@ -1,9 +1,5 @@
-package org.revo.streamer.livepoll.codec.commons.container.m3u8.video;
+package org.revo.streamer.livepoll.mpeg2ts.commons.container.m3u8;
 
-import org.revo.streamer.livepoll.codec.commons.container.Muxer;
-import org.revo.streamer.livepoll.codec.commons.rtp.base.NALU;
-import org.revo.streamer.livepoll.codec.commons.utils.TriConsumer;
-import org.revo.streamer.livepoll.codec.sdp.ElementSpecific;
 import org.revo.streamer.livepoll.mpeg2ts.commons.container.m3u8.video.mpeg2ts.H264NalUtil;
 import org.revo.streamer.livepoll.mpeg2ts.commons.container.m3u8.video.mpeg2ts.TsWriter;
 
@@ -12,13 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TSMuxer extends Muxer {
+public class TSMuxer {
     private final AtomicInteger atomicInteger = new AtomicInteger();
     private final TsWriter tsWriter;
     private boolean isFirstPes = true;
+    private final TriConsumer<Integer, Double, byte[]> consumer;
 
-    public TSMuxer(int requiredSeconds, ElementSpecific elementSpecific, TriConsumer<Integer, Double, byte[]> consumer) {
-        super(elementSpecific, consumer);
+    public TSMuxer(int requiredSeconds, TriConsumer<Integer, Double, byte[]> consumer) {
+        this.consumer = consumer;
         this.tsWriter = new TsWriter();
         int fps = 115;
         ptsIncPerFrame = (long) (1000 / fps) * 90;
@@ -26,19 +23,21 @@ public class TSMuxer extends Muxer {
         dts = pts - 200;
     }
 
-    @Override
     public void mux(long timeStamp, byte[] payload) {
-        boolean isLastFrame = NALU.NaluHeader.read(payload[4]).getTYPE() == H264NT_SPS;
+        boolean isLastFrame = readType(payload[4]) == H264NT_SPS;
         int frameType = H264NalUtil.getPesFrameType(payload);
         List<AvcFrame> encodeAvcFrames = getEncodeAvcFrames(new AvcFrame(payload, frameType, -1, getDts()), isLastFrame);
         for (AvcFrame avcFrame : encodeAvcFrames) {
             byte[] tsBuf = tsWriter.writeH264(isFirstPes, avcFrame.payload, avcFrame.pts, avcFrame.dts);
             isFirstPes = false;
-            this.getConsumer().accept(atomicInteger.incrementAndGet(), (double) timeStamp, tsBuf);
+            this.consumer.accept(atomicInteger.incrementAndGet(), (double) timeStamp, tsBuf);
         }
     }
 
-    @Override
+    private static int readType(byte b) {
+        return b & 0x1F;
+    }
+
     public void close() {
     }
 

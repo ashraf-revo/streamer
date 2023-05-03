@@ -61,7 +61,7 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
             logger.info(this.session.getSdp());
             SdpElementParser parse = SdpElementParser.parse(this.session.getSessionDescription());
             if (SdpElementParser.validate(parse)) {
-                M3u8Splitter m3u8Splitter= new M3u8Splitter(1, this.session.getStreamId(),
+                M3u8Splitter m3u8Splitter= new M3u8Splitter(20, this.session.getStreamId(),
                         this.holderImpl.getFileStorage(), parse, (var1, var2, var3) -> {
                 });
                 this.rtpH264AacHandler = new RtpH264AacHandler(m3u8Splitter);

@@ -21,7 +21,7 @@
     <dependencies>
         <dependency>
             <groupId>org.revo.streamer</groupId>
-            <artifactId>livepoll-codec</artifactId>
+            <artifactId>livepoll-handler</artifactId>
             <version>0.0.1</version>
         </dependency>
     </dependencies>

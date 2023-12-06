@@ -57,6 +57,7 @@
     </build>
     <modules>
         <module>livepoll</module>
+        <module>livepoll-handler</module>
         <module>livepoll-mpeg2ts</module>
         <module>livepoll-codec</module>
     </modules>

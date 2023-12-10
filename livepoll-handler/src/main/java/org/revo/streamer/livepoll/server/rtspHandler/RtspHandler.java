@@ -5,7 +5,7 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.rtsp.RtspMethods;
 import org.reactivestreams.Publisher;
-import org.revo.streamer.livepoll.codec.commons.container.Mp4ContainerSplitter;
+import org.revo.streamer.livepoll.codec.commons.container.m3u8.M3u8ContainerSplitter;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.RtpPkt;
 import org.revo.streamer.livepoll.codec.rtsp.RtspSession;
 import org.revo.streamer.livepoll.codec.rtsp.action.*;
@@ -62,7 +62,7 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
             logger.info(this.session.getSdp());
             SdpElementParser parse = SdpElementParser.parse(this.session.getSessionDescription());
             if (SdpElementParser.validate(parse)) {
-                Mp4ContainerSplitter splitter = new Mp4ContainerSplitter(parse, this.session.getStreamId());
+                M3u8ContainerSplitter splitter = new M3u8ContainerSplitter(parse, this.session.getStreamId());
                 this.rtpH264AacHandler = new RtpH264AacHandler(splitter);
             } else {
                 return error;

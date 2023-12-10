@@ -45,19 +45,19 @@
             <version>1.2.96</version>
         </dependency>
         <dependency>
-            <groupId>org.revo.streamer</groupId>
-            <artifactId>livepoll-mpeg2ts</artifactId>
-            <version>0.0.1</version>
-        </dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv</artifactId>
+            <version>1.5.9</version>
+         </dependency>
         <dependency>
             <groupId>org.bytedeco</groupId>
-            <artifactId>javacv-platform</artifactId>
+            <artifactId>javacpp-platform</artifactId>
             <version>1.5.9</version>
         </dependency>
         <dependency>
             <groupId>org.bytedeco</groupId>
             <artifactId>ffmpeg</artifactId>
-            <classifier>linux-x86</classifier>
+            <classifier>linux-x86_64</classifier>
             <version>6.0-1.5.9</version>
         </dependency>
         <dependency>

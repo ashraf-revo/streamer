@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.6</version>
+        <version>3.2.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.revo</groupId>
@@ -58,7 +58,6 @@
     <modules>
         <module>livepoll</module>
         <module>livepoll-handler</module>
-        <module>livepoll-mpeg2ts</module>
         <module>livepoll-codec</module>
     </modules>
 </project>

@@ -10,6 +10,7 @@ import org.revo.streamer.livepoll.service.HolderImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import reactor.core.publisher.Flux;
 import reactor.netty.DisposableServer;
 import reactor.netty.NettyInbound;
 import reactor.netty.NettyOutbound;
@@ -23,9 +24,13 @@ public class ServerBootstrap {
 
 
     private BiFunction<? super NettyInbound, ? super NettyOutbound, ? extends Publisher<Void>> handler(HolderImpl holder) {
-        return (BiFunction<NettyInbound, NettyOutbound, Publisher<Void>>) (inbound, outbound) -> {
+        return (inbound, outbound) -> {
             RtspRtpHandler handler = new RtspRtpHandler(holder);
-            return outbound.sendObject(inbound.receiveObject().doOnCancel(handler::close).doOnTerminate(handler::close).flatMap(handler));
+            Flux<?> dataStream = inbound.receiveObject()
+                    .doOnCancel(handler::close)
+                    .doOnTerminate(handler::close)
+                    .flatMap(handler);
+            return outbound.sendObject(dataStream);
         };
     }
 

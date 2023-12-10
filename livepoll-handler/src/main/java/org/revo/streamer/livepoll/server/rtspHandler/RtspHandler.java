@@ -4,7 +4,9 @@ import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.rtsp.RtspMethods;
-import org.revo.streamer.livepoll.codec.commons.container.m3u8.M3u8Splitter;
+import org.reactivestreams.Publisher;
+import org.revo.streamer.livepoll.codec.commons.container.Mp4ContainerSplitter;
+import org.revo.streamer.livepoll.codec.commons.rtp.base.RtpPkt;
 import org.revo.streamer.livepoll.codec.rtsp.RtspSession;
 import org.revo.streamer.livepoll.codec.rtsp.action.*;
 import org.revo.streamer.livepoll.codec.sdp.SdpElementParser;
@@ -52,7 +54,6 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
             return Mono.just(new TeardownAction(request, this.session).call());
         } else
             return error;
-//                    close(request, "not follwing rtsp seqance (OPTIONS,ANNOUNCE,SETUP,RECORD,TEARDOWN)");
     }
 
     private Mono<?> initSession(DefaultFullHttpRequest request) {
@@ -61,16 +62,12 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
             logger.info(this.session.getSdp());
             SdpElementParser parse = SdpElementParser.parse(this.session.getSessionDescription());
             if (SdpElementParser.validate(parse)) {
-                M3u8Splitter m3u8Splitter= new M3u8Splitter(20, this.session.getStreamId(),
-                        this.holderImpl.getFileStorage(), parse, (var1, var2, var3) -> {
-                });
-                this.rtpH264AacHandler = new RtpH264AacHandler(m3u8Splitter);
+                Mp4ContainerSplitter splitter = new Mp4ContainerSplitter(parse, this.session.getStreamId());
+                this.rtpH264AacHandler = new RtpH264AacHandler(splitter);
             } else {
                 return error;
-//                    close(request, "Sorry Unsupported Stream");
             }
         }
-        // default return empty
         return Mono.just(true);
     }
 
@@ -87,5 +84,9 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
             this.holderImpl.getSessions().remove(this.session.getId());
         }
         rtpH264AacHandler.close();
+    }
+
+    public Publisher<?> applyRtp(RtpPkt rtpPkt, RtspSession session) {
+        return getRtpHandler().apply(rtpPkt, session);
     }
 }

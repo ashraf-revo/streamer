@@ -30,7 +30,9 @@ public class RtspSession {
     }
 
     public static RtspSession from(DefaultFullHttpRequest request) {
-        return new RtspSession(request.uri()).withSdp(request.content().toString(StandardCharsets.UTF_8)).setStreamId(URLObject.getId(request.uri()))
+        return new RtspSession(request.uri())
+                .withSdp(request.content().toString(StandardCharsets.UTF_8))
+                .setStreamId(URLObject.getId(request.uri()))
                 .setCreatedDate(new Date());
     }
 

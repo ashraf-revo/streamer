@@ -24,10 +24,10 @@ import java.util.function.BiFunction;
 
 import static org.revo.streamer.livepoll.codec.commons.rtp.RtpUtil.toNalu;
 
-public class RtpH264AacHandler implements BiFunction<RtpPkt, RtspSession, Mono<DefaultFullHttpResponse>>, Closeable {
+public class RtpH264AacHandler implements BiFunction<RtpPkt, RtspSession, Mono<Void>>, Closeable {
     private final Converter<RtpPkt, List<NALU>> rtpNaluDecoder;
     private final Converter<RtpPkt, List<ADTS>> rtpAdtsDecoder;
-    private final Mono<DefaultFullHttpResponse> empty = Mono.empty();
+    private final Mono<Void> empty = Mono.empty();
     private final ContainerSplitter splitter;
     private static final byte[] aud = new byte[]{0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0};
     private long lastVideoTimeStamp = 0;
@@ -39,7 +39,7 @@ public class RtpH264AacHandler implements BiFunction<RtpPkt, RtspSession, Mono<D
     }
 
     @Override
-    public Mono<DefaultFullHttpResponse> apply(RtpPkt rtpPkt, RtspSession session) {
+    public Mono<Void> apply(RtpPkt rtpPkt, RtspSession session) {
         InterLeavedRTPSession rtpSession = session.getRTPSessions()[session.getStreamIndex(rtpPkt.getRtpChannle())];
         if (rtpPkt.getRtpChannle() == rtpSession.rtpChannel()) {
             if (rtpSession.getMediaStream().getMediaType() == MediaType.VIDEO) {

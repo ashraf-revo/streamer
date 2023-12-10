@@ -13,8 +13,10 @@
 <div id="player"></div>
 </body>
 <script>
+    let url = new URL(window.location.href);
+    let source = url.searchParams.get("stream") + ".m3u8";
     var player = new Clappr.Player({
-        source: "123.AUDIO.m3u8", parentId: "#player",
+        source: source, parentId: "#player",
         plugins: [Clappr.FlasHLS, LevelSelector, ClapprThumbnailsPlugin],
         height: 340,
         autoPlay: true,

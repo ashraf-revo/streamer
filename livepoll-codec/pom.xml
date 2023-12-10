@@ -51,8 +51,14 @@
          </dependency>
         <dependency>
             <groupId>org.bytedeco</groupId>
-            <artifactId>javacpp-platform</artifactId>
+            <artifactId>javacpp</artifactId>
             <version>1.5.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacpp</artifactId>
+            <version>1.5.9</version>
+            <classifier>linux-x86_64</classifier>
         </dependency>
         <dependency>
             <groupId>org.bytedeco</groupId>

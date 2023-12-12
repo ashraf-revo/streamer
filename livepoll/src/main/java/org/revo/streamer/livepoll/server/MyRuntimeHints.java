@@ -1,5 +1,20 @@
 package org.revo.streamer.livepoll.server;
 
+import gov.nist.javax.sdp.parser.AttributeFieldParser;
+import gov.nist.javax.sdp.parser.BandwidthFieldParser;
+import gov.nist.javax.sdp.parser.ConnectionFieldParser;
+import gov.nist.javax.sdp.parser.EmailFieldParser;
+import gov.nist.javax.sdp.parser.InformationFieldParser;
+import gov.nist.javax.sdp.parser.KeyFieldParser;
+import gov.nist.javax.sdp.parser.MediaFieldParser;
+import gov.nist.javax.sdp.parser.OriginFieldParser;
+import gov.nist.javax.sdp.parser.PhoneFieldParser;
+import gov.nist.javax.sdp.parser.ProtoVersionFieldParser;
+import gov.nist.javax.sdp.parser.RepeatFieldParser;
+import gov.nist.javax.sdp.parser.SessionNameFieldParser;
+import gov.nist.javax.sdp.parser.TimeFieldParser;
+import gov.nist.javax.sdp.parser.URIFieldParser;
+import gov.nist.javax.sdp.parser.ZoneFieldParser;
 import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
@@ -11,50 +26,50 @@ public class MyRuntimeHints implements RuntimeHintsRegistrar {
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
         // Register method for reflection
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.AttributeFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.AttributeFieldParser.class.getConstructors())
+        hints.reflection().registerType(AttributeFieldParser.class);
+        Stream.of(AttributeFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.BandwidthFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.BandwidthFieldParser.class.getConstructors())
+        hints.reflection().registerType(BandwidthFieldParser.class);
+        Stream.of(BandwidthFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.ConnectionFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.ConnectionFieldParser.class.getConstructors())
+        hints.reflection().registerType(ConnectionFieldParser.class);
+        Stream.of(ConnectionFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.EmailFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.EmailFieldParser.class.getConstructors())
+        hints.reflection().registerType(EmailFieldParser.class);
+        Stream.of(EmailFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.InformationFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.InformationFieldParser.class.getConstructors())
+        hints.reflection().registerType(InformationFieldParser.class);
+        Stream.of(InformationFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.KeyFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.KeyFieldParser.class.getConstructors())
+        hints.reflection().registerType(KeyFieldParser.class);
+        Stream.of(KeyFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.MediaFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.MediaFieldParser.class.getConstructors())
+        hints.reflection().registerType(MediaFieldParser.class);
+        Stream.of(MediaFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.OriginFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.OriginFieldParser.class.getConstructors())
+        hints.reflection().registerType(OriginFieldParser.class);
+        Stream.of(OriginFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.PhoneFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.PhoneFieldParser.class.getConstructors())
+        hints.reflection().registerType(PhoneFieldParser.class);
+        Stream.of(PhoneFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.ProtoVersionFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.ProtoVersionFieldParser.class.getConstructors())
+        hints.reflection().registerType(ProtoVersionFieldParser.class);
+        Stream.of(ProtoVersionFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.RepeatFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.RepeatFieldParser.class.getConstructors())
+        hints.reflection().registerType(RepeatFieldParser.class);
+        Stream.of(RepeatFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.SessionNameFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.SessionNameFieldParser.class.getConstructors())
+        hints.reflection().registerType(SessionNameFieldParser.class);
+        Stream.of(SessionNameFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.TimeFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.TimeFieldParser.class.getConstructors())
+        hints.reflection().registerType(TimeFieldParser.class);
+        Stream.of(TimeFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.URIFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.URIFieldParser.class.getConstructors())
+        hints.reflection().registerType(URIFieldParser.class);
+        Stream.of(URIFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
-        hints.reflection().registerType(gov.nist.javax.sdp.parser.ZoneFieldParser.class);
-        Stream.of(gov.nist.javax.sdp.parser.ZoneFieldParser.class.getConstructors())
+        hints.reflection().registerType(ZoneFieldParser.class);
+        Stream.of(ZoneFieldParser.class.getConstructors())
                 .forEach(it -> hints.reflection().registerConstructor(it, ExecutableMode.INVOKE));
 
         // Register resources

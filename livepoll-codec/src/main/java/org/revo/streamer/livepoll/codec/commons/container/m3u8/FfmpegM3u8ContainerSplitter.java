@@ -29,7 +29,7 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
     @SneakyThrows
     public FfmpegM3u8ContainerSplitter(SdpElementParser sdpElementParser, String streamId) {
         super(sdpElementParser);
-        this.baseMediaDirectory = Files.createTempDirectory(streamId);
+        this.baseMediaDirectory = Files.createTempDirectory("stream-" + streamId);
         this.fFmpegM3u8FileWatcher = new FFmpegM3u8FileWatcher(this.baseMediaDirectory);
         this.fFmpegM3u8FileWatcher.start();
         this.createMasterPlaylist(this.baseMediaDirectory, sdpElementParser, streamId);
@@ -91,7 +91,7 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
         this.videoOut.close();
         this.audioOut.close();
         this.fFmpegM3u8FileWatcher.close();
-        Files.delete(this.baseMediaDirectory);
+//        Files.delete(this.baseMediaDirectory);
     }
 
     public static class Subscriber implements Runnable {

@@ -1,7 +1,10 @@
 package org.revo.streamer.livepoll.codec.sdp;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 
+@Getter
 public enum AudioClockRate {
 
     S_96000k(0, 96000),
@@ -32,13 +35,5 @@ public enum AudioClockRate {
 
     public static AudioClockRate getByFrequency(int frequency) {
         return Arrays.stream(AudioClockRate.values()).filter(it -> it.frequency == frequency).findAny().orElse(Unknown);
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    public int getFrequency() {
-        return frequency;
     }
 }

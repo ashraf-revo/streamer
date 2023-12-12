@@ -1,6 +1,5 @@
 package org.revo.streamer.livepoll.server.rtspHandler;
 
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
 import org.revo.streamer.livepoll.codec.commons.rtp.Converter;
 import org.revo.streamer.livepoll.codec.commons.rtp.RtpADTSDecoder;
@@ -25,11 +24,11 @@ import java.util.function.BiFunction;
 import static org.revo.streamer.livepoll.codec.commons.rtp.RtpUtil.toNalu;
 
 public class RtpH264AacHandler implements BiFunction<RtpPkt, RtspSession, Mono<Void>>, Closeable {
+    private static final byte[] aud = new byte[]{0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0};
     private final Converter<RtpPkt, List<NALU>> rtpNaluDecoder;
     private final Converter<RtpPkt, List<ADTS>> rtpAdtsDecoder;
     private final Mono<Void> empty = Mono.empty();
     private final ContainerSplitter splitter;
-    private static final byte[] aud = new byte[]{0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0};
     private long lastVideoTimeStamp = 0;
 
     RtpH264AacHandler(ContainerSplitter splitter) {
@@ -40,8 +39,8 @@ public class RtpH264AacHandler implements BiFunction<RtpPkt, RtspSession, Mono<V
 
     @Override
     public Mono<Void> apply(RtpPkt rtpPkt, RtspSession session) {
-        InterLeavedRTPSession rtpSession = session.getRTPSessions()[session.getStreamIndex(rtpPkt.getRtpChannle())];
-        if (rtpPkt.getRtpChannle() == rtpSession.rtpChannel()) {
+        InterLeavedRTPSession rtpSession = session.getRtpSessions()[session.getStreamIndex(rtpPkt.getRtpChannle())];
+        if (rtpPkt.getRtpChannle() == rtpSession.getRtpChannel()) {
             if (rtpSession.getMediaStream().getMediaType() == MediaType.VIDEO) {
                 if (lastVideoTimeStamp == 0) {
                     addSpsPps(rtpPkt.getTimeStamp());

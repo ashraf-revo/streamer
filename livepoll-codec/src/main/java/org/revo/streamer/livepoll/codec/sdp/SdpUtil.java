@@ -7,7 +7,6 @@ import gov.nist.javax.sdp.fields.AttributeField;
 import gov.nist.javax.sdp.fields.SDPField;
 import gov.nist.javax.sdp.parser.ParserFactory;
 import gov.nist.javax.sdp.parser.SDPParser;
-import org.apache.commons.lang.StringUtils;
 
 import javax.sdp.SdpException;
 import javax.sdp.SessionDescription;
@@ -67,6 +66,7 @@ public class SdpUtil {
         }
         return sd;
     }
+
     public static boolean isEmpty(String str) {
         return str == null || str.length() == 0;
     }

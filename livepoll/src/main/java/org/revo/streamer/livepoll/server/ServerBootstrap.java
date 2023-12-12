@@ -5,7 +5,6 @@ import org.reactivestreams.Publisher;
 import org.revo.streamer.livepoll.codec.rtsp.RtspRequestDecoder;
 import org.revo.streamer.livepoll.codec.rtsp.RtspSession;
 import org.revo.streamer.livepoll.server.rtspHandler.RtspRtpHandler;
-import org.revo.streamer.livepoll.service.FileStorage;
 import org.revo.streamer.livepoll.service.HolderImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -35,12 +34,13 @@ public class ServerBootstrap {
     }
 
     @Bean
-    public DisposableServer tcpServer(@Value("${server.port:8080}") Integer port, FileStorage fileStorage, Map<String, RtspSession> sessions) {
+    public DisposableServer tcpServer(@Value("${server.port:8080}") Integer port, Map<String, RtspSession> sessions) {
         HolderImpl holder = new HolderImpl();
-        holder.setFileStorage(fileStorage);
         holder.setSessions(sessions);
         return TcpServer.create().port(port + 1)
-                .doOnConnection(it -> it.addHandlerLast(new RtspEncoder()).addHandlerLast(new RtspRequestDecoder()))
+                .doOnConnection(it -> it
+                        .addHandlerLast(new RtspEncoder())
+                        .addHandlerLast(new RtspRequestDecoder()))
                 .handle(handler(holder)).bindNow();
     }
 

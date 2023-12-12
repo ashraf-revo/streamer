@@ -8,9 +8,9 @@ import java.io.ByteArrayOutputStream;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AacMuxer extends Muxer {
-    private ByteArrayOutputStream byteArrayOutputStream;
     private final double maxParts;
     private final AtomicInteger index = new AtomicInteger();
+    private ByteArrayOutputStream byteArrayOutputStream;
 
     public AacMuxer(int requiredSeconds, ElementSpecific elementSpecific, TriConsumer<Integer, Double, byte[]> consumer) {
         super(elementSpecific, consumer);

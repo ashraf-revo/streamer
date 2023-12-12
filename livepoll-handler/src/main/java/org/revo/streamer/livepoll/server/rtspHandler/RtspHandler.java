@@ -5,7 +5,7 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.rtsp.RtspMethods;
 import org.reactivestreams.Publisher;
-import org.revo.streamer.livepoll.codec.commons.container.m3u8.M3u8ContainerSplitter;
+import org.revo.streamer.livepoll.codec.commons.container.m3u8.FfmpegM3u8ContainerSplitter;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.RtpPkt;
 import org.revo.streamer.livepoll.codec.rtsp.RtspSession;
 import org.revo.streamer.livepoll.codec.rtsp.action.*;
@@ -18,12 +18,12 @@ import reactor.core.publisher.Mono;
 import java.util.function.Function;
 
 public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<DefaultFullHttpResponse>> {
-    private RtpH264AacHandler rtpH264AacHandler;
-    private HttpMethod state;
-    private RtspSession session;
     private final Mono<DefaultFullHttpResponse> error = Mono.error(RuntimeException::new);
     private final HolderImpl holderImpl;
     private final Logger logger = LoggerFactory.getLogger(RtspHandler.class);
+    private RtpH264AacHandler rtpH264AacHandler;
+    private HttpMethod state;
+    private RtspSession session;
 
     RtspHandler(HolderImpl holderImpl) {
         this.holderImpl = holderImpl;
@@ -62,7 +62,7 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
             logger.info(this.session.getSdp());
             SdpElementParser parse = SdpElementParser.parse(this.session.getSessionDescription());
             if (SdpElementParser.validate(parse)) {
-                M3u8ContainerSplitter splitter = new M3u8ContainerSplitter(parse, this.session.getStreamId());
+                FfmpegM3u8ContainerSplitter splitter = new FfmpegM3u8ContainerSplitter(parse, this.session.getStreamId());
                 this.rtpH264AacHandler = new RtpH264AacHandler(splitter);
             } else {
                 return error;

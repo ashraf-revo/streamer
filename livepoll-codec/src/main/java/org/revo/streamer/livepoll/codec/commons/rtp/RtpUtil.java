@@ -24,7 +24,7 @@ public class RtpUtil {
     }
 
     public static NALU spsppsToNalu(List<String> spspps, ElementSpecific specific) {
-        NALU fuNalU = new NALU(0, 3, 24,specific);
+        NALU fuNalU = new NALU(0, 3, 24, specific);
         for (String s : spspps) {
             byte[] data = Base64.getDecoder().decode(s);
             fuNalU.appendPayload(uIntIntToByteWord(data.length), 0);
@@ -34,7 +34,7 @@ public class RtpUtil {
     }
 
     public static List<NALU> spsppsToNalus(List<String> spspps, ElementSpecific specific) {
-        return spspps.stream().map((String it) -> toNalu(it,specific)).collect(Collectors.toList());
+        return spspps.stream().map((String it) -> toNalu(it, specific)).collect(Collectors.toList());
     }
 
     public static NALU toNalu(String it, ElementSpecific specific) {
@@ -43,6 +43,6 @@ public class RtpUtil {
     }
 
     public static RtpPkt toRtpPkt(String spspps, ElementSpecific specific) {
-        return fromNalu(spsppsToNalu(Arrays.asList(spspps.split(",")),specific));
+        return fromNalu(spsppsToNalu(Arrays.asList(spspps.split(",")), specific));
     }
 }

@@ -21,20 +21,46 @@ public class Transport {
 
     private Map<String, String> parameters = new HashMap<>();
 
-    public void setUnicast(String castMode) {
-        this.unicast = castMode;
+    public static Transport rtpOnTcp(int rtpChannel, int rtcpChannel) {
+        Transport t = new Transport();
+        t.parameters.put(INTERLEAVED, rtpChannel + "-" + rtcpChannel);
+
+        return t;
     }
 
-    public void setTranport(String protocol) {
-        this.tranport = protocol;
+    public static Transport parse(String transport) {
+        if (null == transport) {
+            throw new IllegalArgumentException("Transport parse NULL");
+        }
+
+        Transport t = new Transport();
+        String[] splits = StringUtils.split(transport, ';');
+        t.tranport = splits[0];
+        t.unicast = splits[1];
+        for (String split : splits) {
+            if (split.contains("=")) {
+                String[] keyValue = StringUtils.split(split, '=');
+                t.parameters.put(keyValue[0], keyValue[1]);
+            }
+        }
+
+        return t;
     }
 
     public String getTranport() {
         return tranport;
     }
 
+    public void setTranport(String protocol) {
+        this.tranport = protocol;
+    }
+
     public String getUnicast() {
         return unicast;
+    }
+
+    public void setUnicast(String castMode) {
+        this.unicast = castMode;
     }
 
     /**
@@ -65,32 +91,6 @@ public class Transport {
 
     public String getParameter(String name) {
         return this.parameters.get(name);
-    }
-
-    public static Transport rtpOnTcp(int rtpChannel, int rtcpChannel) {
-        Transport t = new Transport();
-        t.parameters.put(INTERLEAVED, rtpChannel + "-" + rtcpChannel);
-
-        return t;
-    }
-
-    public static Transport parse(String transport) {
-        if (null == transport) {
-            throw new IllegalArgumentException("Transport parse NULL");
-        }
-
-        Transport t = new Transport();
-        String[] splits = StringUtils.split(transport, ';');
-        t.tranport = splits[0];
-        t.unicast = splits[1];
-        for (String split : splits) {
-            if (split.contains("=")) {
-                String[] keyValue = StringUtils.split(split, '=');
-                t.parameters.put(keyValue[0], keyValue[1]);
-            }
-        }
-
-        return t;
     }
 
     @Override

@@ -44,6 +44,15 @@ public class SdpElementParser {
         return elementParser.audioElementSpecific != null || elementParser.videoElementSpecific != null;
     }
 
+    private static ElementSpecific parseRtpmap(MediaDescriptionImpl it) throws SdpParseException {
+        String[] rtpmap = it.getAttribute("rtpmap").split(" ");
+        if (rtpmap.length > 1) {
+            String[] codec = rtpmap[1].split("/");
+            return new ElementSpecific(codec[0], Integer.parseInt(codec[1]), new HashMap<>());
+        }
+        return null;
+    }
+
     public ElementSpecific getAudioElementSpecific() {
         return audioElementSpecific;
     }
@@ -54,14 +63,5 @@ public class SdpElementParser {
 
     public SessionDescription getSessionDescription() {
         return sessionDescription;
-    }
-
-    private static ElementSpecific parseRtpmap(MediaDescriptionImpl it) throws SdpParseException {
-        String[] rtpmap = it.getAttribute("rtpmap").split(" ");
-        if (rtpmap.length > 1) {
-            String[] codec = rtpmap[1].split("/");
-            return new ElementSpecific(codec[0], Integer.parseInt(codec[1]), new HashMap<>());
-        }
-        return null;
     }
 }

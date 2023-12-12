@@ -1,10 +1,11 @@
 package org.revo.streamer.livepoll.codec.commons.utils;
 
+import lombok.Getter;
+
 import java.net.MalformedURLException;
 import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 /**
  * URL 对象
@@ -15,6 +16,7 @@ import java.util.regex.Pattern;
  * @author 陈修恒
  * @date 2016年4月15日
  */
+@Getter
 public class URLObject {
     private final String scheme;
     private final String user;
@@ -23,46 +25,6 @@ public class URLObject {
     private final int port;
     private final String uri;
 
-
-    private static Matcher match(String url) {
-        Pattern pattern = Pattern.compile("^([^:]+)://(([^:]+):([^@]*)@)?([^:/]+)(:([0-9]+))?([^\\?]*)");
-        return pattern.matcher(url);
-    }
-
-
-    public static String getServerUrl(String url) {
-        if (null == url) {
-            return null;
-        }
-
-        Matcher m = match(url);
-        if (!m.find()) {
-            return "";
-        }
-
-        String scheme = m.group(1);
-        String host = m.group(5);
-        String portString = m.group(7);
-
-        if (null == portString) {
-            return scheme + "://" + host;
-        } else {
-            return scheme + "://" + host + ":" + portString;
-        }
-    }
-
-    public static String getUri(String url) {
-        if (null == url) {
-            return null;
-        }
-
-        Matcher matcher = match(url);
-        if (matcher.find()) {
-            return matcher.group(8);
-        } else {
-            return url;
-        }
-    }
 
     public URLObject(String url) throws MalformedURLException {
         Matcher m = match(url);
@@ -102,45 +64,30 @@ public class URLObject {
 
     }
 
+    private static Matcher match(String url) {
+        Pattern pattern = Pattern.compile("^([^:]+)://(([^:]+):([^@]*)@)?([^:/]+)(:([0-9]+))?([^\\?]*)");
+        return pattern.matcher(url);
+    }
+
+    public static String getUri(String url) {
+        if (null == url) {
+            return null;
+        }
+
+        Matcher matcher = match(url);
+        if (matcher.find()) {
+            return matcher.group(8);
+        } else {
+            return url;
+        }
+    }
+
     public static String getId(String url) {
         return Paths.get(getUri(url)).getFileName().toString();
     }
 
-
-    public String getScheme() {
-        return scheme;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
     public String getUrl() {
         return scheme + "://" + host + ":" + port + uri;
-    }
-
-    public String getUrl(String uri) {
-        if (null != uri) {
-            return scheme + "://" + host + ":" + port + uri;
-        } else {
-            return null;
-        }
-    }
-
-    public String getUser() {
-        return user;
     }
 
     @Override

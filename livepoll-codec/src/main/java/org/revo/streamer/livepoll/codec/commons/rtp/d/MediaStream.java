@@ -1,29 +1,24 @@
 package org.revo.streamer.livepoll.codec.commons.rtp.d;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.sdp.Media;
 import javax.sdp.MediaDescription;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * 媒体信息， 类似于 FFmpeg 中的  AVStream
- *
- * @author 陈修恒
- * @date 2016年5月6日
- */
+@Getter
+@Slf4j
 public class MediaStream {
     public static final int SSRC_UNKNOWN = -1;
 
-    private static final Logger logger = LoggerFactory.getLogger(MediaStream.class);
 
     private final String url;
     private final MediaDescription md;
     private final int streamIndex;
 
-    private MediaType mediaType = MediaType.UNKOWN;
+    private MediaType mediaType = MediaType.UNKNOWN;
     private String codec;
     private Rational timeUnit;
     private int channels;
@@ -65,39 +60,8 @@ public class MediaStream {
             }
 
         } catch (Exception e) {
-            logger.error("{}", e.getMessage(), e);
+            log.error("{}", e.getMessage(), e);
         }
-    }
-
-
-    public Rational getTimeUnit() {
-        return timeUnit;
-    }
-
-    public MediaDescription getMediaDescription() {
-        return md;
-    }
-
-    public boolean isAudio() {
-        return mediaType.isAudio();
-    }
-
-    public boolean isVideo() {
-        return mediaType.isVideo();
-    }
-
-
-    public String getCodec() {
-        return codec;
-    }
-
-
-    public int getChannels() {
-        return channels;
-    }
-
-    public int getStreamIndex() {
-        return streamIndex;
     }
 
     @Override
@@ -109,15 +73,4 @@ public class MediaStream {
         return buf.toString();
     }
 
-    public long getTimestampMills(long timestamp) {
-        return Rational.$_1_000.convert(timestamp, timeUnit);
-    }
-
-    public MediaType getMediaType() {
-        return mediaType;
-    }
-
-    public String getUrl() {
-        return url;
-    }
 }

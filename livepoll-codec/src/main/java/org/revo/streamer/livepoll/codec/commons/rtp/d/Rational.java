@@ -7,13 +7,13 @@ public class Rational {
 
     final private int num;
     final private int den;
-    
+
     private Rational(int num, int den) {
         super();
         this.num = num;
         this.den = den;
     }
-    
+
 
     static Rational valueOf(int den) {
         return switch (den) {
@@ -21,10 +21,6 @@ public class Rational {
             case 90000 -> $90_000;
             default -> new Rational(1, den);
         };
-    }
-    
-    long convert(long value, Rational unit) {
-        return value * unit.num * den / ((long) unit.den * num) ;
     }
 
     @Override

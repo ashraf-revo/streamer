@@ -4,6 +4,7 @@ import io.lindstrom.m3u8.model.AlternativeRendition;
 import io.lindstrom.m3u8.model.MasterPlaylist;
 import io.lindstrom.m3u8.model.Variant;
 import io.lindstrom.m3u8.parser.MasterPlaylistParser;
+import lombok.SneakyThrows;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
@@ -15,28 +16,34 @@ import org.spf4j.io.PipedOutputStream;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
-public class M3u8ContainerSplitter extends ContainerSplitter {
+public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
     private final PipedOutputStream videoOut = new PipedOutputStream();
     private final PipedOutputStream audioOut = new PipedOutputStream();
     private final MasterPlaylistParser parser = new MasterPlaylistParser();
+    private final FFmpegM3u8FileWatcher fFmpegM3u8FileWatcher;
+    private final Path baseMediaDirectory;
 
 
-    public M3u8ContainerSplitter(SdpElementParser sdpElementParser, String streamId) {
+    @SneakyThrows
+    public FfmpegM3u8ContainerSplitter(SdpElementParser sdpElementParser, String streamId) {
         super(sdpElementParser);
-        createMasterPlaylist(sdpElementParser, streamId);
+        this.baseMediaDirectory = Files.createTempDirectory(streamId);
+        this.fFmpegM3u8FileWatcher = new FFmpegM3u8FileWatcher(this.baseMediaDirectory);
+        this.fFmpegM3u8FileWatcher.start();
+        this.createMasterPlaylist(this.baseMediaDirectory, sdpElementParser, streamId);
         if (sdpElementParser.getVideoElementSpecific() != null) {
-            new Thread(new Subscriber(MediaType.VIDEO, videoOut, streamId)).start();
+            new Thread(new Subscriber(this.baseMediaDirectory, MediaType.VIDEO, videoOut, streamId)).start();
         }
         if (sdpElementParser.getAudioElementSpecific() != null) {
-            new Thread(new Subscriber(MediaType.AUDIO, audioOut, streamId)).start();
+            new Thread(new Subscriber(this.baseMediaDirectory, MediaType.AUDIO, audioOut, streamId)).start();
         }
 
     }
 
-    private void createMasterPlaylist(SdpElementParser sdpElementParser, String streamId) {
-        String filename = "/media/ashraf/workspace/streamer/livepoll/target/classes/static/" + streamId + ".m3u8";
+    private void createMasterPlaylist(Path baseMediaDirectory, SdpElementParser sdpElementParser, String streamId) {
+        Path masterPlaylistPath = baseMediaDirectory.resolve(streamId + ".m3u8");
         MasterPlaylist playlist = MasterPlaylist.builder()
                 .addAlternativeRenditions(AlternativeRendition.builder()
                         .type(io.lindstrom.m3u8.model.MediaType.AUDIO)
@@ -57,7 +64,7 @@ public class M3u8ContainerSplitter extends ContainerSplitter {
                                 .build())
                 .build();
         try {
-            Files.write(Paths.get(filename), parser.writePlaylistAsBytes(playlist));
+            Files.write(masterPlaylistPath, parser.writePlaylistAsBytes(playlist));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -79,17 +86,20 @@ public class M3u8ContainerSplitter extends ContainerSplitter {
     }
 
     @Override
-    public void close() throws IOException {
-        videoOut.close();
-        audioOut.close();
+    public void close() {
+        this.videoOut.close();
+        this.audioOut.close();
+        this.fFmpegM3u8FileWatcher.close();
     }
 
     public static class Subscriber implements Runnable {
+        private final Path streamDirectory;
         private final MediaType mediaType;
         private final PipedOutputStream outputStream;
         private final String streamId;
 
-        public Subscriber(MediaType mediaType, PipedOutputStream outputStream, String streamId) {
+        public Subscriber(Path baseMediaDirectory, MediaType mediaType, PipedOutputStream outputStream, String streamId) {
+            this.streamDirectory = baseMediaDirectory.resolve(streamId + "." + mediaType.name() + ".m3u8");
             this.mediaType = mediaType;
             this.outputStream = outputStream;
             this.streamId = streamId;
@@ -124,8 +134,7 @@ public class M3u8ContainerSplitter extends ContainerSplitter {
         }
 
         private FFmpegFrameRecorder getFFmpegHlsRecorder(FFmpegFrameGrabber grabber) throws FFmpegFrameRecorder.Exception {
-            String filename = "/media/ashraf/workspace/streamer/livepoll/target/classes/static/" + streamId + "." + mediaType.name() + ".m3u8";
-            FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(filename, grabber.getAudioChannels());
+            FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(streamDirectory.toString(), grabber.getAudioChannels());
 
             recorder.setFormat("hls");
             recorder.setOption("hls_time", "10");

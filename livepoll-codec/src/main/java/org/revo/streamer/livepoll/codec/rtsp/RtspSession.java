@@ -2,6 +2,7 @@ package org.revo.streamer.livepoll.codec.rtsp;
 
 import gov.nist.javax.sdp.SessionDescriptionImpl;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.InterLeavedRTPSession;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaStream;
@@ -15,10 +16,11 @@ import javax.sip.TransportNotSupportedException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@Getter
 public class RtspSession {
-    private String id;
+    private final String id;
+    private final String uri;
     private String streamId;
-    private String uri;
     private InterLeavedRTPSession[] rtpSessions = null;
     private SessionDescriptionImpl sd;
     private String sdp;
@@ -36,53 +38,14 @@ public class RtspSession {
                 .setCreatedDate(new Date());
     }
 
-    public String getStreamId() {
-        return streamId;
-    }
-
     public RtspSession setStreamId(String streamId) {
         this.streamId = streamId;
         return this;
     }
 
-    public RtspSession setId(String id) {
-        this.id = id;
-        return this;
-    }
-
-
-    public String getId() {
-        return id;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public RtspSession setUri(String uri) {
-        this.uri = uri;
-        return this;
-    }
-
-    public Date getCreatedDate() {
-        return createdDate;
-    }
-
     public RtspSession setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
         return this;
-    }
-
-    public String getSdp() {
-        return sdp;
-    }
-
-    public void setSdp(String sdp) {
-        this.sdp = sdp;
-    }
-
-    public InterLeavedRTPSession[] getRTPSessions() {
-        return rtpSessions;
     }
 
     public int getStreamIndex(int channel) {
@@ -91,7 +54,7 @@ public class RtspSession {
                 continue;
             }
 
-            if (rtpSessions[i].rtcpChannel() == channel || rtpSessions[i].rtpChannel() == channel) {
+            if (rtpSessions[i].getRtcpChannel() == channel || rtpSessions[i].getRtpChannel() == channel) {
                 return i;
             }
         }
@@ -114,7 +77,6 @@ public class RtspSession {
         }
 
         String uri = URLObject.getUri(url);
-        System.out.println("************************************" + uri + "             " + url);
 //        /aslive/live/test/streamid=0             rtsp://127.0.0.1:8085/aslive/live/test/streamid=0
 //        /aslive/live/test                        rtsp://127.0.0.1:8085/aslive/live/test?l=10/streamid=0
         int mediaIndex = 0;
@@ -139,8 +101,8 @@ public class RtspSession {
     public RtspSession withSdp(String sdp) {
         this.sdp = sdp;
         this.sd = SdpUtil.withSdp(sdp);
-        List<MediaDescription> mediaDescripts = getMediaDescriptions(this.sd);
-        this.rtpSessions = new InterLeavedRTPSession[mediaDescripts.size()];
+        List<MediaDescription> mediaDescriptors = getMediaDescriptions(this.sd);
+        this.rtpSessions = new InterLeavedRTPSession[mediaDescriptors.size()];
         return this;
     }
 

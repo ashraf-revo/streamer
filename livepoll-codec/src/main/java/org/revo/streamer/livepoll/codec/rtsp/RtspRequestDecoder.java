@@ -16,37 +16,17 @@ import java.util.List;
 public class RtspRequestDecoder extends ByteToMessageDecoder {
 
     private static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RtspRequestDecoder.class);
-
-    enum STATE {
-        READ_FIRST_BYTE,
-        READ_INITAL,
-        READ_RTP_CHANNEL,
-        READ_RTP_LENGTH,
-        READ_RTP,
-
-        SKIP_CONTROL_CHARS,
-        READ_INITIAL,
-        READ_HEADER,
-        READ_VARIABLE_LENGTH_CONTENT,
-        BAD_MESSAGE,
-        UPGRADED
-    }
-
-    private int remains = 1;
-    private STATE state = STATE.READ_FIRST_BYTE;
-
-    private int rtpChannle;
-    private int rtpLength;
-
     private final int maxInitialLineLength;
     private final int maxHeaderSize;
     private final int maxChunkSize;
     private final boolean validateHeaders;
     private final AppendableCharSequence seq = new AppendableCharSequence(128);
-
+    private int remains = 1;
+    private STATE state = STATE.READ_FIRST_BYTE;
+    private int rtpChannle;
+    private int rtpLength;
     private HttpMessage message;
     private long contentLength = Long.MIN_VALUE;
-
     public RtspRequestDecoder() {
         this(4096, 8192, 8192, true);
     }
@@ -78,6 +58,108 @@ public class RtspRequestDecoder extends ByteToMessageDecoder {
         this.validateHeaders = validateHeaders;
     }
 
+    private static void skipControlCharacters(ByteBuf buffer) {
+        for (; ; ) {
+            char c = (char) buffer.readUnsignedByte();
+            if (!Character.isISOControl(c) &&
+                    !Character.isWhitespace(c)) {
+                buffer.readerIndex(buffer.readerIndex() - 1);
+                break;
+            }
+        }
+    }
+
+    private static String[] splitInitialLine(AppendableCharSequence sb) {
+        int aStart;
+        int aEnd;
+        int bStart;
+        int bEnd;
+        int cStart;
+        int cEnd;
+
+        aStart = findNonWhitespace(sb, 0);
+        aEnd = findWhitespace(sb, aStart);
+
+        bStart = findNonWhitespace(sb, aEnd);
+        bEnd = findWhitespace(sb, bStart);
+
+        cStart = findNonWhitespace(sb, bEnd);
+        cEnd = findEndOfString(sb);
+
+        return new String[]{
+                sb.substring(aStart, aEnd),
+                sb.substring(bStart, bEnd),
+                cStart < cEnd ? sb.substring(cStart, cEnd) : ""};
+    }
+
+    private static String[] splitHeader(AppendableCharSequence sb) {
+        final int length = sb.length();
+        int nameStart;
+        int nameEnd;
+        int colonEnd;
+        int valueStart;
+        int valueEnd;
+
+        nameStart = findNonWhitespace(sb, 0);
+        for (nameEnd = nameStart; nameEnd < length; nameEnd++) {
+            char ch = sb.charAt(nameEnd);
+            if (ch == ':' || Character.isWhitespace(ch)) {
+                break;
+            }
+        }
+
+        for (colonEnd = nameEnd; colonEnd < length; colonEnd++) {
+            if (sb.charAt(colonEnd) == ':') {
+                colonEnd++;
+                break;
+            }
+        }
+
+        valueStart = findNonWhitespace(sb, colonEnd);
+        if (valueStart == length) {
+            return new String[]{
+                    sb.substring(nameStart, nameEnd),
+                    ""
+            };
+        }
+
+        valueEnd = findEndOfString(sb);
+        return new String[]{
+                sb.substring(nameStart, nameEnd),
+                sb.substring(valueStart, valueEnd)
+        };
+    }
+
+    private static int findNonWhitespace(CharSequence sb, int offset) {
+        int result;
+        for (result = offset; result < sb.length(); result++) {
+            if (!Character.isWhitespace(sb.charAt(result))) {
+                break;
+            }
+        }
+        return result;
+    }
+
+    private static int findWhitespace(CharSequence sb, int offset) {
+        int result;
+        for (result = offset; result < sb.length(); result++) {
+            if (Character.isWhitespace(sb.charAt(result))) {
+                break;
+            }
+        }
+        return result;
+    }
+
+    private static int findEndOfString(CharSequence sb) {
+        int result;
+        for (result = sb.length(); result > 0; result--) {
+            if (!Character.isWhitespace(sb.charAt(result - 1))) {
+                break;
+            }
+        }
+        return result;
+    }
+
     @Override
     protected void handlerRemoved0(ChannelHandlerContext ctx) throws Exception {
         // 释放缓存
@@ -89,7 +171,6 @@ public class RtspRequestDecoder extends ByteToMessageDecoder {
         // 通知其他 handler
         super.handlerRemoved0(ctx);
     }
-
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
@@ -234,18 +315,6 @@ public class RtspRequestDecoder extends ByteToMessageDecoder {
         return contentLength;
     }
 
-    private static void skipControlCharacters(ByteBuf buffer) {
-        for (; ; ) {
-            char c = (char) buffer.readUnsignedByte();
-            if (!Character.isISOControl(c) &&
-                    !Character.isWhitespace(c)) {
-                buffer.readerIndex(buffer.readerIndex() - 1);
-                break;
-            }
-        }
-    }
-
-
     private STATE state() {
         return state;
     }
@@ -255,96 +324,19 @@ public class RtspRequestDecoder extends ByteToMessageDecoder {
         this.remains = remains;
     }
 
+    enum STATE {
+        READ_FIRST_BYTE,
+        READ_INITAL,
+        READ_RTP_CHANNEL,
+        READ_RTP_LENGTH,
+        READ_RTP,
 
-    private static String[] splitInitialLine(AppendableCharSequence sb) {
-        int aStart;
-        int aEnd;
-        int bStart;
-        int bEnd;
-        int cStart;
-        int cEnd;
-
-        aStart = findNonWhitespace(sb, 0);
-        aEnd = findWhitespace(sb, aStart);
-
-        bStart = findNonWhitespace(sb, aEnd);
-        bEnd = findWhitespace(sb, bStart);
-
-        cStart = findNonWhitespace(sb, bEnd);
-        cEnd = findEndOfString(sb);
-
-        return new String[]{
-                sb.substring(aStart, aEnd),
-                sb.substring(bStart, bEnd),
-                cStart < cEnd ? sb.substring(cStart, cEnd) : ""};
-    }
-
-    private static String[] splitHeader(AppendableCharSequence sb) {
-        final int length = sb.length();
-        int nameStart;
-        int nameEnd;
-        int colonEnd;
-        int valueStart;
-        int valueEnd;
-
-        nameStart = findNonWhitespace(sb, 0);
-        for (nameEnd = nameStart; nameEnd < length; nameEnd++) {
-            char ch = sb.charAt(nameEnd);
-            if (ch == ':' || Character.isWhitespace(ch)) {
-                break;
-            }
-        }
-
-        for (colonEnd = nameEnd; colonEnd < length; colonEnd++) {
-            if (sb.charAt(colonEnd) == ':') {
-                colonEnd++;
-                break;
-            }
-        }
-
-        valueStart = findNonWhitespace(sb, colonEnd);
-        if (valueStart == length) {
-            return new String[]{
-                    sb.substring(nameStart, nameEnd),
-                    ""
-            };
-        }
-
-        valueEnd = findEndOfString(sb);
-        return new String[]{
-                sb.substring(nameStart, nameEnd),
-                sb.substring(valueStart, valueEnd)
-        };
-    }
-
-    private static int findNonWhitespace(CharSequence sb, int offset) {
-        int result;
-        for (result = offset; result < sb.length(); result++) {
-            if (!Character.isWhitespace(sb.charAt(result))) {
-                break;
-            }
-        }
-        return result;
-    }
-
-    private static int findWhitespace(CharSequence sb, int offset) {
-        int result;
-        for (result = offset; result < sb.length(); result++) {
-            if (Character.isWhitespace(sb.charAt(result))) {
-                break;
-            }
-        }
-        return result;
-    }
-
-    private static int findEndOfString(CharSequence sb) {
-        int result;
-        for (result = sb.length(); result > 0; result--) {
-            if (!Character.isWhitespace(sb.charAt(result - 1))) {
-                break;
-            }
-        }
-        return result;
+        SKIP_CONTROL_CHARS,
+        READ_INITIAL,
+        READ_HEADER,
+        READ_VARIABLE_LENGTH_CONTENT,
+        BAD_MESSAGE,
+        UPGRADED
     }
 
 }

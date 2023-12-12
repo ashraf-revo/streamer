@@ -3,7 +3,6 @@ package org.revo.streamer.livepoll.server;
 import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.context.annotation.ImportRuntimeHints;
 
 import java.util.stream.Stream;
 

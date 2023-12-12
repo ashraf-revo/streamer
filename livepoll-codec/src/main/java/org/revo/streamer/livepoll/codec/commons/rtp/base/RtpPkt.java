@@ -4,7 +4,7 @@ package org.revo.streamer.livepoll.codec.commons.rtp.base;
 import static org.revo.streamer.livepoll.codec.commons.utils.StaticProcs.bytesToUIntInt;
 import static org.revo.streamer.livepoll.codec.commons.utils.StaticProcs.bytesToUIntLong;
 
-public class RtpPkt extends Packet  {
+public class RtpPkt extends Packet {
     private int version = 2;        //2 bits
     private int padding;            //1 bit
     private int extension = 0;        //1 bit

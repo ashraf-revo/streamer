@@ -4,9 +4,9 @@ package org.revo.streamer.livepoll.codec.commons.rtp.base;
 import org.revo.streamer.livepoll.codec.sdp.ElementSpecific;
 
 public class NALU extends Packet {
+    public final static byte[] NALUPrefix = {0x00, 0x00, 0x00, 0x01};
     private byte[] payload;
     private NaluHeader NALUHeader;
-    public final static byte[] NALUPrefix = {0x00, 0x00, 0x00, 0x01};
 
     public NALU(byte[] payload, int offset, int length, ElementSpecific specific) {
         this.payload = new byte[length - offset];
@@ -21,17 +21,17 @@ public class NALU extends Packet {
         this.payload[0] = this.NALUHeader.getRaw();
     }
 
-    public void appendPayload(byte[] data, int offset) {
-        byte[] ndata = new byte[data.length - offset];
-        System.arraycopy(data, offset, ndata, 0, ndata.length);
-        this.payload = copyOfAndAppend(this.payload, ndata);
-    }
-
     private static byte[] copyOfAndAppend(byte[] data1, byte[] data2) {
         byte[] result = new byte[data1.length + data2.length];
         System.arraycopy(data1, 0, result, 0, data1.length);
         System.arraycopy(data2, 0, result, data1.length, data2.length);
         return result;
+    }
+
+    public void appendPayload(byte[] data, int offset) {
+        byte[] ndata = new byte[data.length - offset];
+        System.arraycopy(data, offset, ndata, 0, ndata.length);
+        this.payload = copyOfAndAppend(this.payload, ndata);
     }
 
     public NaluHeader getNALUHeader() {
@@ -58,13 +58,13 @@ public class NALU extends Packet {
     }
 
     public static class NaluHeader {
-        private int F;
-        private int NRI;
-        private int TYPE;
         public static final int HIGH = 3;
         public static final int MIDUM = 2;
         public static final int LOW = 1;
         public static final int IGNORE = 0;
+        private int F;
+        private int NRI;
+        private int TYPE;
 
         private NaluHeader() {
 
@@ -96,6 +96,10 @@ public class NALU extends Packet {
             return (read_0.getNRI() == 3 && read_0.getTYPE() == 28 && read_1.getTYPE() == 5);
         }
 
+        static NaluHeader from(int F, int NRI, int TYPE) {
+            return new NaluHeader(F, NRI, TYPE);
+        }
+
         @Override
         public String toString() {
             return "NaluHeader{" +
@@ -103,10 +107,6 @@ public class NALU extends Packet {
                     ", NRI=" + NRI +
                     ", TYPE=" + TYPE +
                     '}';
-        }
-
-        static NaluHeader from(int F, int NRI, int TYPE) {
-            return new NaluHeader(F, NRI, TYPE);
         }
 
         public int getF() {

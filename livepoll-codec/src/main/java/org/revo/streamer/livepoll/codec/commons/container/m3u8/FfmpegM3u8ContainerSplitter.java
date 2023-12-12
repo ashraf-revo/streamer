@@ -85,11 +85,13 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
         }
     }
 
+    @SneakyThrows
     @Override
     public void close() {
         this.videoOut.close();
         this.audioOut.close();
         this.fFmpegM3u8FileWatcher.close();
+        Files.delete(this.baseMediaDirectory);
     }
 
     public static class Subscriber implements Runnable {

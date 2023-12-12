@@ -5,16 +5,27 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.Closeable;
 import java.nio.file.*;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
 public class FFmpegM3u8FileWatcher extends Thread implements Closeable {
     private final Path path;
     private final WatchEvent.Kind<?>[] kinds;
     private WatchService watchService;
-    private Consumer<Object> onCreate = System.out::println;
-    private Consumer<Object> onDelete = System.out::println;
-    private Consumer<Object> onUpdate = System.out::println;
+    private Function<Object, Boolean> onCreate = (it) -> {
+        System.out.println(it);
+        return Boolean.TRUE;
+    };
+    private Function<Object, Boolean> onDelete = (it) -> {
+        System.out.println(it);
+        return Boolean.TRUE;
+    };
+
+    private Function<Object, Boolean> onUpdate = (it) -> {
+        System.out.println(it);
+        return Boolean.TRUE;
+    };
+
 
     public FFmpegM3u8FileWatcher(Path path) {
         this.path = path;
@@ -29,17 +40,17 @@ public class FFmpegM3u8FileWatcher extends Thread implements Closeable {
         this.kinds = kinds;
     }
 
-    public FFmpegM3u8FileWatcher setOnCreate(Consumer<Object> onCreate) {
+    public FFmpegM3u8FileWatcher setOnCreate(Function<Object, Boolean> onCreate) {
         this.onCreate = onCreate;
         return this;
     }
 
-    public FFmpegM3u8FileWatcher setOnDelete(Consumer<Object> onDelete) {
+    public FFmpegM3u8FileWatcher setOnDelete(Function<Object, Boolean> onDelete) {
         this.onDelete = onDelete;
         return this;
     }
 
-    public FFmpegM3u8FileWatcher setOnUpdate(Consumer<Object> onUpdate) {
+    public FFmpegM3u8FileWatcher setOnUpdate(Function<Object, Boolean> onUpdate) {
         this.onUpdate = onUpdate;
         return this;
     }
@@ -53,14 +64,23 @@ public class FFmpegM3u8FileWatcher extends Thread implements Closeable {
             WatchKey key;
             while ((key = watchService.take()) != null) {
                 for (WatchEvent<?> event : key.pollEvents()) {
-                    if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
-                        onCreate.accept(event.context());
+                    Path eventPath = this.path.resolve((event.context().toString()));
+                    Boolean shouldDelete = Boolean.FALSE;
+                    try {
+                        if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
+                            shouldDelete = onCreate.apply(eventPath);
+                        }
+                        if (event.kind().equals(StandardWatchEventKinds.ENTRY_DELETE)) {
+                            shouldDelete = onDelete.apply(eventPath);
+                        }
+                        if (event.kind().equals(StandardWatchEventKinds.ENTRY_MODIFY)) {
+                            shouldDelete = onUpdate.apply(eventPath);
+                        }
+                    } catch (Exception e) {
+                        shouldDelete = Boolean.TRUE;
                     }
-                    if (event.kind().equals(StandardWatchEventKinds.ENTRY_DELETE)) {
-                        onDelete.accept(event.context());
-                    }
-                    if (event.kind().equals(StandardWatchEventKinds.ENTRY_MODIFY)) {
-                        onUpdate.accept(event.context());
+                    if (shouldDelete == Boolean.TRUE && Files.exists(eventPath)) {
+                        // Files.delete(eventPath);
                     }
                 }
                 key.reset();

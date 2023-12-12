@@ -5,6 +5,7 @@ import io.lindstrom.m3u8.model.MasterPlaylist;
 import io.lindstrom.m3u8.model.Variant;
 import io.lindstrom.m3u8.parser.MasterPlaylistParser;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
@@ -14,6 +15,7 @@ import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.revo.streamer.livepoll.codec.sdp.SdpElementParser;
 import org.spf4j.io.PipedOutputStream;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,6 +26,8 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
     private final MasterPlaylistParser parser = new MasterPlaylistParser();
     private final FFmpegM3u8FileWatcher fFmpegM3u8FileWatcher;
     private final Path baseMediaDirectory;
+    private HlsMediaSubscriber videoSubscriber;
+    private HlsMediaSubscriber audioSubscriber;
 
 
     @SneakyThrows
@@ -34,10 +38,12 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
         this.fFmpegM3u8FileWatcher.start();
         this.createMasterPlaylist(this.baseMediaDirectory, sdpElementParser, streamId);
         if (sdpElementParser.getVideoElementSpecific() != null) {
-            new Thread(new Subscriber(this.baseMediaDirectory, MediaType.VIDEO, videoOut, streamId)).start();
+            videoSubscriber = new HlsMediaSubscriber(this.baseMediaDirectory, MediaType.VIDEO, videoOut, streamId);
+            new Thread(videoSubscriber).start();
         }
         if (sdpElementParser.getAudioElementSpecific() != null) {
-            new Thread(new Subscriber(this.baseMediaDirectory, MediaType.AUDIO, audioOut, streamId)).start();
+            audioSubscriber = new HlsMediaSubscriber(this.baseMediaDirectory, MediaType.AUDIO, audioOut, streamId);
+            new Thread(audioSubscriber).start();
         }
 
     }
@@ -90,27 +96,32 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
     public void close() {
         this.videoOut.close();
         this.audioOut.close();
+        this.videoSubscriber.close();
+        this.audioSubscriber.close();
+        Thread.sleep(100);
         this.fFmpegM3u8FileWatcher.close();
-//        Files.delete(this.baseMediaDirectory);
     }
 
-    public static class Subscriber implements Runnable {
+
+    @Slf4j
+    public static class HlsMediaSubscriber implements Runnable, Closeable {
         private final Path streamDirectory;
         private final MediaType mediaType;
         private final PipedOutputStream outputStream;
-        private final String streamId;
+        private FFmpegFrameRecorder recorder;
+        private FFmpegFrameGrabber grabber;
+        private volatile boolean closed = false;
 
-        public Subscriber(Path baseMediaDirectory, MediaType mediaType, PipedOutputStream outputStream, String streamId) {
+        public HlsMediaSubscriber(Path baseMediaDirectory, MediaType mediaType, PipedOutputStream outputStream, String streamId) {
             this.streamDirectory = baseMediaDirectory.resolve(streamId + "." + mediaType.name() + ".m3u8");
             this.mediaType = mediaType;
             this.outputStream = outputStream;
-            this.streamId = streamId;
         }
 
         @Override
         public void run() {
             try {
-                FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(outputStream.getInputStream(), 0);
+                grabber = new FFmpegFrameGrabber(outputStream.getInputStream(), 0);
                 if (mediaType.isVideo()) {
                     grabber.setFormat("h264");
                 }
@@ -119,23 +130,33 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
                     grabber.setFormat("aac");
                 }
                 grabber.startUnsafe();
-                FFmpegFrameRecorder recorder = getFFmpegHlsRecorder(grabber);
+                recorder = getFFmpegHlsRecorder(grabber, mediaType, streamDirectory);
                 Frame frame;
 
-                while ((frame = grabber.grab()) != null) {
+                while (!closed && (frame = grabber.grab()) != null) {
                     recorder.record(frame);
                 }
 
-                grabber.close();
-                recorder.flush();
-                recorder.close();
-
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("error in processing hls for {}", mediaType.name(), e);
+            } finally {
+                doClose();
             }
         }
 
-        private FFmpegFrameRecorder getFFmpegHlsRecorder(FFmpegFrameGrabber grabber) throws FFmpegFrameRecorder.Exception {
+        @SneakyThrows
+        private void doClose() {
+            if (grabber != null) {
+                grabber.stop();
+                grabber.close();
+            }
+            if (recorder != null) {
+                recorder.flush();
+                recorder.close();
+            }
+        }
+
+        private static FFmpegFrameRecorder getFFmpegHlsRecorder(FFmpegFrameGrabber grabber, MediaType mediaType, Path streamDirectory) throws FFmpegFrameRecorder.Exception {
             FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(streamDirectory.toString(), grabber.getAudioChannels());
 
             recorder.setFormat("hls");
@@ -165,36 +186,10 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
             return recorder;
         }
 
-        private FFmpegFrameRecorder getFFmpegDashRecorder(FFmpegFrameGrabber grabber) throws FFmpegFrameRecorder.Exception {
-            String filename = "/media/ashraf/workspace/streamer/livepoll/src/main/resources/static/dist/123/out/" + this.streamId + "-" + this.mediaType.name() + ".mpd";
-            FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(filename, grabber.getAudioChannels());
-
-            recorder.setFormat("dash");
-            recorder.setOption("window_size", "10");
-            recorder.setOption("init_seg_name", mediaType.name() + "_init_$RepresentationID$.m4s");
-            recorder.setOption("media_seg_name", mediaType.name() + "_chunk_$RepresentationID$_$Number%05d$.m4s");
-            recorder.setOption("streaming", "1");
-            recorder.setOption("hls_playlist", "1");
-
-            if (mediaType.isVideo()) {
-//                recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
-//                recorder.setVideoQuality(0);
-                recorder.setImageWidth(grabber.getImageWidth());
-                recorder.setImageHeight(grabber.getImageHeight());
-                recorder.setFrameRate(grabber.getFrameRate());
-                recorder.setVideoBitrate(grabber.getVideoBitrate());
-                recorder.setSampleRate(grabber.getSampleRate());
-            }
-            if (mediaType.isAudio()) {
-                recorder.setAudioCodec(avcodec.AV_CODEC_ID_AAC);
-                recorder.setAudioQuality(0);
-                recorder.setAudioChannels(grabber.getAudioChannels());
-                recorder.setAudioBitrate(grabber.getAudioBitrate());
-            }
-            recorder.startUnsafe();
-            return recorder;
+        @Override
+        public void close() throws IOException {
+            this.closed = true;
         }
-
     }
 
 }

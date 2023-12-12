@@ -4,6 +4,8 @@ import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.rtsp.RtspMethods;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 import org.revo.streamer.livepoll.codec.commons.container.m3u8.FfmpegM3u8ContainerSplitter;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.RtpPkt;
@@ -11,26 +13,21 @@ import org.revo.streamer.livepoll.codec.rtsp.RtspSession;
 import org.revo.streamer.livepoll.codec.rtsp.action.*;
 import org.revo.streamer.livepoll.codec.sdp.SdpElementParser;
 import org.revo.streamer.livepoll.service.HolderImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
 import java.util.function.Function;
 
+@Slf4j
+@Getter
 public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<DefaultFullHttpResponse>> {
     private final Mono<DefaultFullHttpResponse> error = Mono.error(RuntimeException::new);
     private final HolderImpl holderImpl;
-    private final Logger logger = LoggerFactory.getLogger(RtspHandler.class);
     private RtpH264AacHandler rtpH264AacHandler;
     private HttpMethod state;
     private RtspSession session;
 
     RtspHandler(HolderImpl holderImpl) {
         this.holderImpl = holderImpl;
-    }
-
-    RtpH264AacHandler getRtpHandler() {
-        return rtpH264AacHandler;
     }
 
     @Override
@@ -53,30 +50,22 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
             this.state = RtspMethods.TEARDOWN;
             return Mono.just(new TeardownAction(request, this.session).call());
         } else
-            return error;
+            return this.error;
     }
 
     private Mono<?> initSession(DefaultFullHttpRequest request) {
         if (request.method() == RtspMethods.ANNOUNCE) {
             this.session = RtspSession.from(request);
-            logger.info(this.session.getSdp());
+            log.info(this.session.getSdp());
             SdpElementParser parse = SdpElementParser.parse(this.session.getSessionDescription());
             if (SdpElementParser.validate(parse)) {
                 FfmpegM3u8ContainerSplitter splitter = new FfmpegM3u8ContainerSplitter(parse, this.session.getStreamId());
-                this.rtpH264AacHandler = new RtpH264AacHandler(splitter);
+                this.rtpH264AacHandler = new RtpH264AacHandler(splitter, this.session);
             } else {
-                return error;
+                return this.error;
             }
         }
         return Mono.just(true);
-    }
-
-    HttpMethod getState() {
-        return state;
-    }
-
-    RtspSession getSession() {
-        return session;
     }
 
     public void close() {
@@ -86,7 +75,7 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
         rtpH264AacHandler.close();
     }
 
-    public Publisher<?> applyRtp(RtpPkt rtpPkt, RtspSession session) {
-        return getRtpHandler().apply(rtpPkt, session);
+    public Publisher<?> applyRtp(RtpPkt rtpPkt) {
+        return this.rtpH264AacHandler.apply(rtpPkt);
     }
 }

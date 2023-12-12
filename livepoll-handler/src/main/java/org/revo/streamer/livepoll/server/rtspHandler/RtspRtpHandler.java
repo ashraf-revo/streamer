@@ -14,7 +14,6 @@ public class RtspRtpHandler implements Function<Object, Publisher<?>> {
     private final RtspHandler rtspHandler;
     private final Mono<?> error = Mono.error(RuntimeException::new);
 
-
     public RtspRtpHandler(HolderImpl holderImpl) {
         this.rtspHandler = new RtspHandler(holderImpl);
     }
@@ -36,17 +35,17 @@ public class RtspRtpHandler implements Function<Object, Publisher<?>> {
 
     private Publisher<?> handle(RtpPkt rtpPkt) {
         if (this.rtspHandler.getState() == RtspMethods.RECORD) {
-            return rtspHandler.applyRtp(rtpPkt, this.rtspHandler.getSession());
+            return this.rtspHandler.applyRtp(rtpPkt);
         } else {
-            return handle(error);
+            return this.handle(error);
         }
     }
 
     private Publisher<?> handle(DefaultFullHttpRequest request) {
-        return rtspHandler.apply(request);
+        return this.rtspHandler.apply(request);
     }
 
     public void close() {
-        rtspHandler.close();
+        this.rtspHandler.close();
     }
 }

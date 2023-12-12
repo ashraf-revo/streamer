@@ -19,26 +19,28 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static org.revo.streamer.livepoll.codec.commons.rtp.RtpUtil.toNalu;
 
-public class RtpH264AacHandler implements BiFunction<RtpPkt, RtspSession, Mono<Void>>, Closeable {
+public class RtpH264AacHandler implements Function<RtpPkt,  Mono<Void>>, Closeable {
     private static final byte[] aud = new byte[]{0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0};
     private final Converter<RtpPkt, List<NALU>> rtpNaluDecoder;
     private final Converter<RtpPkt, List<ADTS>> rtpAdtsDecoder;
     private final Mono<Void> empty = Mono.empty();
     private final ContainerSplitter splitter;
+    private final RtspSession session;
     private long lastVideoTimeStamp = 0;
 
-    RtpH264AacHandler(ContainerSplitter splitter) {
+    RtpH264AacHandler(ContainerSplitter splitter, RtspSession session) {
         this.splitter = splitter;
+        this.session = session;
         this.rtpNaluDecoder = new RtpNALUDecoder(this.splitter.getSdpElementParser().getVideoElementSpecific());
         this.rtpAdtsDecoder = new RtpADTSDecoder(this.splitter.getSdpElementParser().getAudioElementSpecific());
     }
 
     @Override
-    public Mono<Void> apply(RtpPkt rtpPkt, RtspSession session) {
+    public Mono<Void> apply(RtpPkt rtpPkt) {
         InterLeavedRTPSession rtpSession = session.getRtpSessions()[session.getStreamIndex(rtpPkt.getRtpChannle())];
         if (rtpPkt.getRtpChannle() == rtpSession.getRtpChannel()) {
             if (rtpSession.getMediaStream().getMediaType() == MediaType.VIDEO) {

@@ -21,7 +21,7 @@ public class RtspSession {
     private final String id;
     private final String uri;
     private String streamId;
-    private InterLeavedRTPSession[] rtpSessions = null;
+    private InterLeavedRTPSession[] rtpSessions;
     private SessionDescriptionImpl sd;
     private String sdp;
     private Date createdDate;

@@ -54,4 +54,31 @@ public class Transport {
 
         return values;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder buf = new StringBuilder();
+        buf.append(tranport);
+        buf.append(";").append(unicast);
+
+        String key;
+
+        key = "interleaved";
+        if (parameters.containsKey(key)) {
+            buf.append(";").append(key).append("=").append(parameters.get(key));
+        }
+
+        key = "mode";
+        if (parameters.containsKey(key)) {
+            buf.append(";").append(key).append("=").append(parameters.get(key));
+        }
+
+
+        key = "ssrc";
+        if (parameters.containsKey(key)) {
+            buf.append(";").append(key).append("=").append(parameters.get(key));
+        }
+
+        return buf.toString();
+    }
 }

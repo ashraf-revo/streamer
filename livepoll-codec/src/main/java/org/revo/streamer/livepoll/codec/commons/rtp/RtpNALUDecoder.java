@@ -19,6 +19,7 @@ public class RtpNALUDecoder implements Converter<RtpPkt, List<NALU>> {
 
     private final RtpToNALU rtpToNalu = new RtpToNALU();
     private final ElementSpecific specific;
+    public static final NALU AUD_NALU = new NALU(new byte[]{0x09, (byte) 0xf0}, 0, 2);
 
     public RtpNALUDecoder(ElementSpecific specific) {
         this.specific = specific;
@@ -36,14 +37,14 @@ public class RtpNALUDecoder implements Converter<RtpPkt, List<NALU>> {
         public List<NALU> apply(RtpPkt rtpPkt) {
             NALU.NaluHeader naluHeader = NALU.NaluHeader.read(rtpPkt.getPayload()[0]);
             if (naluHeader.getTYPE() > 0 && naluHeader.getTYPE() <= SINGLE_NALU) {
-                return Collections.singletonList(new NALU(rtpPkt.getPayload(), 0, rtpPkt.getPayload().length, specific));
+                return List.of(new NALU(rtpPkt.getPayload(), 0, rtpPkt.getPayload().length));
             } else if (naluHeader.getTYPE() == STAP_A) {
                 List<NALU> nalus = new LinkedList<>();
                 int offset = 1;
                 while (offset < rtpPkt.getPayload().length - 1 /*NAL Unit-0 Header*/) {
                     int size = bytesToUIntInt(rtpPkt.getPayload(), offset);
                     offset += 2;   //                NAL Unit-i Size
-                    nalus.add(new NALU(rtpPkt.getPayload(), offset, size + offset, specific));
+                    nalus.add(new NALU(rtpPkt.getPayload(), offset, size + offset));
                     offset += size;//                NAL Unit-i Data
                 }
                 return nalus;
@@ -53,7 +54,7 @@ public class RtpNALUDecoder implements Converter<RtpPkt, List<NALU>> {
 //            int reserved = (rtpPkt.getPayload()[1] & 0x20) >> 5;
                 int type = (rtpPkt.getPayload()[1] & 0x1F);
                 if (start) {
-                    this.fuNalU = new NALU(naluHeader.getF(), naluHeader.getNRI(), type, specific);
+                    this.fuNalU = new NALU(naluHeader.getF(), naluHeader.getNRI(), type);
                     this.fuNalU.appendPayload(rtpPkt.getPayload(), 2);
                 }
                 if (this.fuNalU != null && this.fuNalU.getNALUHeader().getTYPE() == type) {
@@ -61,7 +62,7 @@ public class RtpNALUDecoder implements Converter<RtpPkt, List<NALU>> {
                         this.fuNalU.appendPayload(rtpPkt.getPayload(), 2);
                     }
                     if (end) {
-                        List<NALU> nalus = List.of(new NALU(fuNalU.getPayload(), 0, fuNalU.getPayload().length, specific));
+                        List<NALU> nalus = List.of(new NALU(fuNalU.getPayload(), 0, fuNalU.getPayload().length));
                         this.fuNalU = null;
                         return nalus;
                     }

@@ -11,6 +11,8 @@ import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
 import org.bytedeco.javacv.Frame;
 import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
+import org.revo.streamer.livepoll.codec.commons.container.m3u8.audio.M3u8AudioAacMuxer;
+import org.revo.streamer.livepoll.codec.commons.container.m3u8.video.M3U8VideoH264Muxer;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.revo.streamer.livepoll.codec.sdp.SdpElementParser;
 import org.spf4j.io.PipedOutputStream;
@@ -21,35 +23,41 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
-    private final PipedOutputStream videoOut = new PipedOutputStream();
-    private final PipedOutputStream audioOut = new PipedOutputStream();
     private final MasterPlaylistParser parser = new MasterPlaylistParser();
     private final FFmpegM3u8FileWatcher fFmpegM3u8FileWatcher;
     private final Path baseMediaDirectory;
-    private HlsMediaSubscriber videoSubscriber;
-    private HlsMediaSubscriber audioSubscriber;
+    private Recorder videoSubscriber;
+    private Recorder audioSubscriber;
+    private M3U8VideoH264Muxer m3U8VideoH264Muxer;
+    private M3u8AudioAacMuxer m3u8AudioAacMuxer;
 
 
     @SneakyThrows
     public FfmpegM3u8ContainerSplitter(SdpElementParser sdpElementParser, String streamId) {
         super(sdpElementParser);
         this.baseMediaDirectory = Files.createTempDirectory("stream-" + streamId);
+//        this.baseMediaDirectory = Path.of("/media/ashraf/workspace/streamer/livepoll/target/classes/static");
         this.fFmpegM3u8FileWatcher = new FFmpegM3u8FileWatcher(this.baseMediaDirectory);
         this.fFmpegM3u8FileWatcher.start();
-        this.createMasterPlaylist(this.baseMediaDirectory, sdpElementParser, streamId);
+        this.createMasterPlaylist(sdpElementParser, streamId);
         if (sdpElementParser.getVideoElementSpecific() != null) {
+            PipedOutputStream videoOut = new PipedOutputStream();
             videoSubscriber = new HlsMediaSubscriber(this.baseMediaDirectory, MediaType.VIDEO, videoOut, streamId);
             new Thread(videoSubscriber).start();
+            m3U8VideoH264Muxer = new M3U8VideoH264Muxer(videoOut, sdpElementParser);
         }
         if (sdpElementParser.getAudioElementSpecific() != null) {
+            PipedOutputStream audioOut = new PipedOutputStream();
             audioSubscriber = new HlsMediaSubscriber(this.baseMediaDirectory, MediaType.AUDIO, audioOut, streamId);
             new Thread(audioSubscriber).start();
+            m3u8AudioAacMuxer = new M3u8AudioAacMuxer(audioOut, sdpElementParser);
         }
-
     }
 
-    private void createMasterPlaylist(Path baseMediaDirectory, SdpElementParser sdpElementParser, String streamId) {
-        Path masterPlaylistPath = baseMediaDirectory.resolve(streamId + ".m3u8");
+
+    @SneakyThrows
+    private void createMasterPlaylist(SdpElementParser sdpElementParser, String streamId) {
+        Path masterPlaylistPath = this.baseMediaDirectory.resolve(streamId + ".m3u8");
         MasterPlaylist playlist = MasterPlaylist.builder()
                 .addAlternativeRenditions(AlternativeRendition.builder()
                         .type(io.lindstrom.m3u8.model.MediaType.AUDIO)
@@ -69,42 +77,37 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
                                 .resolution(640, 360)
                                 .build())
                 .build();
-        try {
-            Files.write(masterPlaylistPath, parser.writePlaylistAsBytes(playlist));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Files.write(masterPlaylistPath, parser.writePlaylistAsBytes(playlist));
     }
 
 
     @Override
     public void split(MediaType mediaType, long timeStamp, byte[] data) {
-        try {
-            if (mediaType.isVideo()) {
-                videoOut.write(data);
-            }
-            if (mediaType.isAudio()) {
-                audioOut.write(data);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (mediaType.isVideo()) {
+            m3U8VideoH264Muxer.mux(timeStamp, data);
+        }
+        if (mediaType.isAudio()) {
+            m3u8AudioAacMuxer.mux(timeStamp, data);
         }
     }
 
     @SneakyThrows
     @Override
     public void close() {
-        this.videoOut.close();
-        this.audioOut.close();
+        this.m3U8VideoH264Muxer.close();
+        this.m3u8AudioAacMuxer.close();
         this.videoSubscriber.close();
         this.audioSubscriber.close();
         Thread.sleep(100);
         this.fFmpegM3u8FileWatcher.close();
     }
 
+    interface Recorder extends Closeable, Runnable {
+        FFmpegFrameRecorder getRecorder(FFmpegFrameGrabber grabber, MediaType mediaType, Path streamDirectory);
+    }
 
     @Slf4j
-    public static class HlsMediaSubscriber implements Runnable, Closeable {
+    public static class HlsMediaSubscriber implements Recorder {
         private final Path streamDirectory;
         private final MediaType mediaType;
         private final PipedOutputStream outputStream;
@@ -130,7 +133,7 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
                     grabber.setFormat("aac");
                 }
                 grabber.startUnsafe();
-                recorder = getFFmpegHlsRecorder(grabber, mediaType, streamDirectory);
+                recorder = getRecorder(grabber, mediaType, streamDirectory);
                 Frame frame;
 
                 while (!closed && (frame = grabber.grab()) != null) {
@@ -189,6 +192,12 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
         @Override
         public void close() throws IOException {
             this.closed = true;
+        }
+
+        @SneakyThrows
+        @Override
+        public FFmpegFrameRecorder getRecorder(FFmpegFrameGrabber grabber, MediaType mediaType, Path streamDirectory) {
+            return getFFmpegHlsRecorder(grabber, mediaType, streamDirectory);
         }
     }
 

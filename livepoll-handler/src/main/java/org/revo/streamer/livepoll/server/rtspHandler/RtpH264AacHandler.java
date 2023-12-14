@@ -1,5 +1,6 @@
 package org.revo.streamer.livepoll.server.rtspHandler;
 
+import lombok.SneakyThrows;
 import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
 import org.revo.streamer.livepoll.codec.commons.rtp.Converter;
 import org.revo.streamer.livepoll.codec.commons.rtp.RtpADTSDecoder;
@@ -11,26 +12,18 @@ import org.revo.streamer.livepoll.codec.commons.rtp.base.RtpPkt;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.InterLeavedRTPSession;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.revo.streamer.livepoll.codec.rtsp.RtspSession;
-import org.revo.streamer.livepoll.codec.sdp.ElementSpecific;
-import org.revo.streamer.livepoll.codec.sdp.SdpUtil;
 import reactor.core.publisher.Mono;
 
 import java.io.Closeable;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.revo.streamer.livepoll.codec.commons.rtp.RtpUtil.toNalu;
-
-public class RtpH264AacHandler implements Function<RtpPkt,  Mono<Void>>, Closeable {
-    private static final byte[] aud = new byte[]{0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0};
+public class RtpH264AacHandler implements Function<RtpPkt, Mono<Void>>, Closeable {
     private final Converter<RtpPkt, List<NALU>> rtpNaluDecoder;
     private final Converter<RtpPkt, List<ADTS>> rtpAdtsDecoder;
     private final Mono<Void> empty = Mono.empty();
     private final ContainerSplitter splitter;
     private final RtspSession session;
-    private long lastVideoTimeStamp = 0;
 
     RtpH264AacHandler(ContainerSplitter splitter, RtspSession session) {
         this.splitter = splitter;
@@ -44,19 +37,10 @@ public class RtpH264AacHandler implements Function<RtpPkt,  Mono<Void>>, Closeab
         InterLeavedRTPSession rtpSession = session.getRtpSessions()[session.getStreamIndex(rtpPkt.getRtpChannle())];
         if (rtpPkt.getRtpChannle() == rtpSession.getRtpChannel()) {
             if (rtpSession.getMediaStream().getMediaType() == MediaType.VIDEO) {
-                if (lastVideoTimeStamp == 0) {
-                    addSpsPps(rtpPkt.getTimeStamp());
-                }
-                if (lastVideoTimeStamp != rtpPkt.getTimeStamp() && lastVideoTimeStamp != 0) {
-                    splitter.split(rtpSession.getMediaStream().getMediaType(), rtpPkt.getTimeStamp(), aud);
-                }
-                List<NALU> naluList = rtpNaluDecoder.convert(rtpPkt);
-                callSplitter(rtpPkt.getTimeStamp(), rtpSession.getMediaStream().getMediaType(), naluList);
-                this.lastVideoTimeStamp = rtpPkt.getTimeStamp();
+                callSplitter(rtpPkt.getTimeStamp(), rtpSession.getMediaStream().getMediaType(), rtpNaluDecoder.convert(rtpPkt));
             }
             if (rtpSession.getMediaStream().getMediaType() == MediaType.AUDIO) {
-                List<ADTS> adtsList = rtpAdtsDecoder.convert(rtpPkt);
-                callSplitter(rtpPkt.getTimeStamp(), rtpSession.getMediaStream().getMediaType(), adtsList);
+                callSplitter(rtpPkt.getTimeStamp(), rtpSession.getMediaStream().getMediaType(), rtpAdtsDecoder.convert(rtpPkt));
             }
         }
         return empty;
@@ -66,24 +50,10 @@ public class RtpH264AacHandler implements Function<RtpPkt,  Mono<Void>>, Closeab
         splitter.split(mediaType, timeStamp, naluList);
     }
 
-    private void addSpsPps(long timeStamp) {
-        SdpUtil.getSpropParameter(this.splitter.getSdpElementParser().getSessionDescription())
-                .stream().map(its -> Arrays.asList(its.split(",")))
-                .filter(it -> it.size() == 2)
-                .forEach(it -> {
-                    ElementSpecific videoElementSpecific = splitter.getSdpElementParser().getVideoElementSpecific();
-                    List<NALU> nalus = List.of(toNalu(it.get(0), videoElementSpecific), toNalu(it.get(1), videoElementSpecific));
-                    callSplitter(timeStamp, MediaType.VIDEO, nalus);
-                });
-    }
-
+    @SneakyThrows
     @Override
     public void close() {
-        try {
-            this.splitter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.splitter.close();
     }
 
 }

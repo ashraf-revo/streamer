@@ -1,21 +1,22 @@
 package org.revo.streamer.livepoll.codec.commons.rtp.base;
 
 
-import org.revo.streamer.livepoll.codec.sdp.ElementSpecific;
+import lombok.Getter;
 
+@Getter
 public class NALU extends Packet {
     public final static byte[] NALUPrefix = {0x00, 0x00, 0x00, 0x01};
     private byte[] payload;
-    private NaluHeader NALUHeader;
+    private final NaluHeader NALUHeader;
 
-    public NALU(byte[] payload, int offset, int length, ElementSpecific specific) {
+    public NALU(byte[] payload, int offset, int length) {
         this.payload = new byte[length - offset];
         System.arraycopy(payload, offset, this.payload, 0, this.payload.length);
         this.NALUHeader = NaluHeader.read(payload[offset]);
     }
 
 
-    public NALU(int F, int NRI, int TYPE, ElementSpecific specific) {
+    public NALU(int F, int NRI, int TYPE) {
         this.payload = new byte[1];
         this.NALUHeader = NaluHeader.from(F, NRI, TYPE);
         this.payload[0] = this.NALUHeader.getRaw();
@@ -32,10 +33,6 @@ public class NALU extends Packet {
         byte[] ndata = new byte[data.length - offset];
         System.arraycopy(data, offset, ndata, 0, ndata.length);
         this.payload = copyOfAndAppend(this.payload, ndata);
-    }
-
-    public NaluHeader getNALUHeader() {
-        return NALUHeader;
     }
 
     @Override
@@ -57,6 +54,7 @@ public class NALU extends Packet {
         return NALUPrefix.length;
     }
 
+    @Getter
     public static class NaluHeader {
         public static final int HIGH = 3;
         public static final int MIDUM = 2;
@@ -109,17 +107,6 @@ public class NALU extends Packet {
                     '}';
         }
 
-        public int getF() {
-            return F;
-        }
-
-        public int getNRI() {
-            return NRI;
-        }
-
-        public int getTYPE() {
-            return TYPE;
-        }
 
         byte getRaw() {
             int i = ((this.F << 7) | (this.NRI << 5) | (this.TYPE & 0x1F)) & 0xFF;

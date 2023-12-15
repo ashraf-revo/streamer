@@ -4,6 +4,8 @@ import io.lindstrom.m3u8.model.AlternativeRendition;
 import io.lindstrom.m3u8.model.MasterPlaylist;
 import io.lindstrom.m3u8.model.Variant;
 import io.lindstrom.m3u8.parser.MasterPlaylistParser;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bytedeco.ffmpeg.global.avcodec;
@@ -26,7 +28,7 @@ import java.nio.file.Paths;
 public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
     private final MasterPlaylistParser parser = new MasterPlaylistParser();
     private final FFmpegM3u8FileWatcher fFmpegM3u8FileWatcher;
-    private final Path baseMediaDirectory;
+    private Path baseMediaDirectory;
     private Recorder videoSubscriber;
     private Recorder audioSubscriber;
     private M3U8VideoH264Muxer m3U8VideoH264Muxer;
@@ -36,7 +38,7 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
     @SneakyThrows
     public FfmpegM3u8ContainerSplitter(SdpElementParser sdpElementParser, String streamId) {
         super(sdpElementParser);
-        this.baseMediaDirectory = Files.createDirectory(Paths.get(System.getProperty("java.io.tmpdir"), streamId));
+        createBaseMediaDirectory(streamId);
         this.fFmpegM3u8FileWatcher = new FFmpegM3u8FileWatcher(this.baseMediaDirectory);
         this.fFmpegM3u8FileWatcher.start();
         this.createMasterPlaylist(sdpElementParser, streamId);
@@ -54,11 +56,22 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
         }
     }
 
+    @SneakyThrows
+    private void createBaseMediaDirectory(String streamId) {
+        this.baseMediaDirectory = Paths.get(System.getProperty("java.io.tmpdir"), streamId);
+        if (!this.baseMediaDirectory.toFile().exists()) {
+            Files.createDirectory(this.baseMediaDirectory);
+        } else {
+            Files.list(this.baseMediaDirectory).forEach(it -> it.toFile().delete());
+        }
+    }
+
 
     @SneakyThrows
     private void createMasterPlaylist(SdpElementParser sdpElementParser, String streamId) {
         Path masterPlaylistPath = this.baseMediaDirectory.resolve(streamId + ".m3u8");
         MasterPlaylist playlist = MasterPlaylist.builder()
+                .version(7)
                 .addAlternativeRenditions(AlternativeRendition.builder()
                         .type(io.lindstrom.m3u8.model.MediaType.AUDIO)
                         .name("EN")
@@ -168,6 +181,7 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
             recorder.setOption("hls_flags", "delete_segments+append_list+split_by_time");
             recorder.setOption("hls_segment_type", "fmp4");
             recorder.setOption("master_pl_name", "master-" + mediaType.name() + ".m3u8");
+            recorder.setOption("hls_fmp4_init_filename", mediaType.name().toLowerCase() + "-init.mp4");
             if (mediaType.isVideo()) {
                 recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
                 recorder.setVideoQuality(0);
@@ -176,14 +190,12 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
                 recorder.setFrameRate(grabber.getFrameRate());
                 recorder.setVideoBitrate(grabber.getVideoBitrate());
                 recorder.setSampleRate(grabber.getSampleRate());
-                recorder.setOption("hls_fmp4_init_filename", "video-init.mp4");
             }
             if (mediaType.isAudio()) {
                 recorder.setAudioCodec(avcodec.AV_CODEC_ID_AAC);
                 recorder.setAudioQuality(0);
                 recorder.setAudioChannels(grabber.getAudioChannels());
                 recorder.setAudioBitrate(grabber.getAudioBitrate());
-                recorder.setOption("hls_fmp4_init_filename", "audio-init.mp4");
             }
             recorder.startUnsafe();
             return recorder;

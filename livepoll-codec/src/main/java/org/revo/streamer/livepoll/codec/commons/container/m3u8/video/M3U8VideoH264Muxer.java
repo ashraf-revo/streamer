@@ -29,6 +29,12 @@ public class M3U8VideoH264Muxer implements Muxer {
         List<NALU> spsPps = getSpsPps(sdpElementParser.getSessionDescription());
         this.sps = spsPps.get(0);
         this.pps = spsPps.get(1);
+        this.setSpsPps();
+    }
+
+    private void setSpsPps() {
+        this.mux(this.lastVideoTimeStamp, this.sps.getRaw());
+        this.mux(this.lastVideoTimeStamp, this.pps.getRaw());
     }
 
     private static List<NALU> getSpsPps(SessionDescription description) {
@@ -45,10 +51,6 @@ public class M3U8VideoH264Muxer implements Muxer {
     public void mux(long timeStamp, byte[] payload) {
         if (lastVideoTimeStamp != timeStamp && lastVideoTimeStamp != 0) {
             outputStream.write(AUD_NALU.getRaw());
-        }
-        if (NALU.NaluHeader.read(payload[4]).getTYPE() == 5) {
-            outputStream.write(sps.getRaw());
-            outputStream.write(pps.getRaw());
         }
         outputStream.write(payload);
         this.lastVideoTimeStamp = timeStamp;

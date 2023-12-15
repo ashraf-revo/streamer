@@ -178,7 +178,7 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
             recorder.setFormat("hls");
             recorder.setOption("hls_time", "10");
             recorder.setOption("hls_list_size", "0");
-            recorder.setOption("hls_flags", "delete_segments+append_list+split_by_time");
+            recorder.setOption("hls_flags", "delete_segments+append_list+split_by_time+independent_segments");
             recorder.setOption("hls_segment_type", "fmp4");
             recorder.setOption("master_pl_name", "master-" + mediaType.name() + ".m3u8");
             recorder.setOption("hls_fmp4_init_filename", mediaType.name().toLowerCase() + "-init.mp4");

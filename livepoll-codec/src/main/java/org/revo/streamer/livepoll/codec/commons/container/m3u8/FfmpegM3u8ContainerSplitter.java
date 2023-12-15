@@ -21,6 +21,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
     private final MasterPlaylistParser parser = new MasterPlaylistParser();
@@ -35,8 +36,7 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
     @SneakyThrows
     public FfmpegM3u8ContainerSplitter(SdpElementParser sdpElementParser, String streamId) {
         super(sdpElementParser);
-        this.baseMediaDirectory = Files.createTempDirectory("stream-" + streamId);
-//        this.baseMediaDirectory = Path.of("/media/ashraf/workspace/streamer/livepoll/target/classes/static");
+        this.baseMediaDirectory = Files.createDirectory(Paths.get(System.getProperty("java.io.tmpdir"), streamId));
         this.fFmpegM3u8FileWatcher = new FFmpegM3u8FileWatcher(this.baseMediaDirectory);
         this.fFmpegM3u8FileWatcher.start();
         this.createMasterPlaylist(sdpElementParser, streamId);
@@ -99,7 +99,7 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
         this.videoSubscriber.close();
         this.audioSubscriber.close();
         Thread.sleep(100);
-        this.fFmpegM3u8FileWatcher.close();
+        //   this.fFmpegM3u8FileWatcher.close();
     }
 
     interface Recorder extends Closeable, Runnable {

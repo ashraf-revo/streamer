@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>wel</title>
-    <script type="application/javascript" src="//cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
+    <script type="application/javascript"
+            src="//cdn.jsdelivr.net/npm/@clappr/player@latest/dist/clappr.min.js"></script>
     <script type="text/javascript"
             src="//cdn.jsdelivr.net/gh/clappr/clappr-level-selector-plugin@latest/dist/level-selector.min.js"></script>
     <script type="text/javascript"
@@ -14,7 +15,7 @@
 </body>
 <script>
     let url = new URL(window.location.href);
-    let source = url.searchParams.get("stream") + ".m3u8";
+    let source = "/streaming/" + url.searchParams.get("stream") + "/" + url.searchParams.get("stream") + ".m3u8";
     var player = new Clappr.Player({
         source: source, parentId: "#player",
         plugins: [Clappr.FlasHLS, LevelSelector, ClapprThumbnailsPlugin],

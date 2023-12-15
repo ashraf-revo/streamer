@@ -1,6 +1,7 @@
 package org.revo.streamer.livepoll;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.ResourceHandlerRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
@@ -12,9 +13,18 @@ public class WebConfig implements WebFluxConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry
                 .addResourceHandler("/streaming/**")
-                .addResourceLocations("file:///."+System.getProperty("java.io.tmpdir")+"/");
+                .addResourceLocations("file:///." + System.getProperty("java.io.tmpdir") + "/");
 
         registry.addResourceHandler("/**")
                 .addResourceLocations("/public", "classpath:/static/");
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry
+                .addMapping("/**")
+                .allowedOrigins("*")
+                .allowedMethods("*");
+
     }
 }

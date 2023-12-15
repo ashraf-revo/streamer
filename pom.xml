@@ -10,7 +10,7 @@
     </parent>
     <groupId>org.revo</groupId>
     <artifactId>streamer</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2</version>
     <name>streamer</name>
     <description>Demo project for Spring Boot</description>
     <packaging>pom</packaging>

@@ -18,6 +18,7 @@ import gov.nist.javax.sdp.parser.ZoneFieldParser;
 import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.core.io.ClassPathResource;
 
 import java.util.stream.Stream;
 
@@ -25,6 +26,7 @@ public class MyRuntimeHints implements RuntimeHintsRegistrar {
 
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+        hints.resources().registerResource(new ClassPathResource("/static/index.html"));
         // Register method for reflection
         hints.reflection().registerType(AttributeFieldParser.class);
         Stream.of(AttributeFieldParser.class.getConstructors())

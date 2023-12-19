@@ -8,7 +8,7 @@
     <name>livepoll-handler</name>
     <description>Demo project for Spring Boot</description>
     <packaging>jar</packaging>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <properties>
         <spring.skip>false</spring.skip>
         <java.version>17</java.version>
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>org.revo.streamer</groupId>
             <artifactId>livepoll-codec</artifactId>
-            <version>0.0.2</version>
+            <version>0.0.3</version>
         </dependency>
     </dependencies>
     <build>

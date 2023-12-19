@@ -180,14 +180,14 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
             recorder.setFormat("hls");
             recorder.setOption("hls_time", "10");
             recorder.setOption("hls_list_size", "0");
-            recorder.setOption("hls_flags", "delete_segments+append_list+split_by_time+independent_segments");
+            recorder.setOption("hls_flags", "delete_segments+append_list+independent_segments");
             recorder.setOption("hls_playlist_type", "event");
             recorder.setOption("segment_list_flags", "live");
             recorder.setOption("hls_segment_type", "fmp4");
             recorder.setOption("master_pl_name", "master-" + streamId + "." + mediaType.name() + ".m3u8");
             recorder.setOption("hls_fmp4_init_filename", mediaType.name().toLowerCase() + "-init.mp4");
             if (mediaType.isVideo()) {
-                recorder.setOption("force_key_frames","expr:gte(t,n_forced*1)");
+                recorder.setGopSize(10);
                 recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
                 recorder.setVideoQuality(0);
                 recorder.setImageWidth(grabber.getImageWidth());

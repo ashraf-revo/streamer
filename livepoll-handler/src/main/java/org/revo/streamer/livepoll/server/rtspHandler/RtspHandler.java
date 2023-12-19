@@ -7,7 +7,7 @@ import io.netty.handler.codec.rtsp.RtspMethods;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
-import org.revo.streamer.livepoll.codec.commons.container.m3u8.FfmpegM3u8ContainerSplitter;
+import org.revo.streamer.livepoll.codec.commons.container.hls.HlsStreamContainerSplitter;
 import org.revo.streamer.livepoll.codec.commons.rtp.base.RtpPkt;
 import org.revo.streamer.livepoll.codec.rtsp.RtspSession;
 import org.revo.streamer.livepoll.codec.rtsp.action.*;
@@ -37,7 +37,8 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
             return Mono.just(new OptionsAction(request, this.session).call());
         } else if (this.state == RtspMethods.OPTIONS && request.method() == RtspMethods.ANNOUNCE) {
             this.state = RtspMethods.ANNOUNCE;
-            return initSession(request)
+            this.session = RtspSession.from(request);
+            return Mono.just(true)
                     .doOnNext(it -> this.holderImpl.getSessions().put(this.session.getId(), this.session))
                     .map(it -> new AnnounceAction(request, this.session).call());
         } else if ((this.state == RtspMethods.ANNOUNCE || this.state == RtspMethods.SETUP) && request.method() == RtspMethods.SETUP) {
@@ -45,6 +46,10 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
             return Mono.just(new SetupAction(request, this.session).call());
         } else if (this.state == RtspMethods.SETUP && request.method() == RtspMethods.RECORD) {
             this.state = RtspMethods.RECORD;
+            SdpElementParser parse = SdpElementParser.parse(this.session.getSessionDescription());
+            HlsStreamContainerSplitter splitter = new HlsStreamContainerSplitter(parse, 10, this.session.getStreamId());
+            splitter.start();
+            this.rtpH264AacHandler = new RtpH264AacHandler(splitter, this.session);
             return Mono.just(new RecordAction(request, this.session).call());
         } else if (request.method() == RtspMethods.TEARDOWN) {
             this.state = RtspMethods.TEARDOWN;
@@ -52,21 +57,10 @@ public class RtspHandler implements Function<DefaultFullHttpRequest, Mono<Defaul
         } else
             return this.error;
     }
+//            if (!SdpElementParser.validate(parse)) {
+//        return this.error;
+//    }
 
-    private Mono<?> initSession(DefaultFullHttpRequest request) {
-        if (request.method() == RtspMethods.ANNOUNCE) {
-            this.session = RtspSession.from(request);
-            log.info(this.session.getSdp());
-            SdpElementParser parse = SdpElementParser.parse(this.session.getSessionDescription());
-            if (SdpElementParser.validate(parse)) {
-                FfmpegM3u8ContainerSplitter splitter = new FfmpegM3u8ContainerSplitter(parse, 10, this.session.getStreamId());
-                this.rtpH264AacHandler = new RtpH264AacHandler(splitter, this.session);
-            } else {
-                return this.error;
-            }
-        }
-        return Mono.just(true);
-    }
 
     public void close() {
         if (this.session != null && this.session.getId() != null) {

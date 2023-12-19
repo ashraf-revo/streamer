@@ -1,7 +1,7 @@
 package org.revo.streamer.livepoll.server.rtspHandler;
 
 import lombok.SneakyThrows;
-import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
+import org.revo.streamer.livepoll.codec.commons.container.StreamContainerSplitter;
 import org.revo.streamer.livepoll.codec.commons.rtp.Converter;
 import org.revo.streamer.livepoll.codec.commons.rtp.RtpADTSDecoder;
 import org.revo.streamer.livepoll.codec.commons.rtp.RtpNALUDecoder;
@@ -22,10 +22,10 @@ public class RtpH264AacHandler implements Function<RtpPkt, Mono<Void>>, Closeabl
     private final Converter<RtpPkt, List<NALU>> rtpNaluDecoder;
     private final Converter<RtpPkt, List<ADTS>> rtpAdtsDecoder;
     private final Mono<Void> empty = Mono.empty();
-    private final ContainerSplitter splitter;
+    private final StreamContainerSplitter splitter;
     private final RtspSession session;
 
-    RtpH264AacHandler(ContainerSplitter splitter, RtspSession session) {
+    public RtpH264AacHandler(StreamContainerSplitter splitter, RtspSession session) {
         this.splitter = splitter;
         this.session = session;
         this.rtpNaluDecoder = new RtpNALUDecoder(this.splitter.getSdpElementParser().getVideoElementSpecific());

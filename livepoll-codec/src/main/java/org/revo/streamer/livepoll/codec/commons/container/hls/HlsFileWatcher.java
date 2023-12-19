@@ -1,4 +1,4 @@
-package org.revo.streamer.livepoll.codec.commons.container.m3u8;
+package org.revo.streamer.livepoll.codec.commons.container.hls;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,7 @@ import java.util.Queue;
 import java.util.function.Function;
 
 @Slf4j
-public class FFmpegM3u8FileWatcher extends Thread implements Closeable {
+public class HlsFileWatcher extends Thread implements Closeable {
     private final Path path;
     private final WatchEvent.Kind<?>[] kinds;
     private WatchService watchService;
@@ -31,7 +31,7 @@ public class FFmpegM3u8FileWatcher extends Thread implements Closeable {
     };
 
 
-    public FFmpegM3u8FileWatcher(Path path) {
+    public HlsFileWatcher(Path path) {
         this.path = path;
         this.kinds = new WatchEvent.Kind[]{
                 StandardWatchEventKinds.ENTRY_CREATE,
@@ -39,22 +39,22 @@ public class FFmpegM3u8FileWatcher extends Thread implements Closeable {
                 StandardWatchEventKinds.ENTRY_MODIFY};
     }
 
-    public FFmpegM3u8FileWatcher(Path path, WatchEvent.Kind<?>[] kinds) {
+    public HlsFileWatcher(Path path, WatchEvent.Kind<?>[] kinds) {
         this.path = path;
         this.kinds = kinds;
     }
 
-    public FFmpegM3u8FileWatcher setOnCreate(Function<Object, Boolean> onCreate) {
+    public HlsFileWatcher setOnCreate(Function<Object, Boolean> onCreate) {
         this.onCreate = onCreate;
         return this;
     }
 
-    public FFmpegM3u8FileWatcher setOnDelete(Function<Object, Boolean> onDelete) {
+    public HlsFileWatcher setOnDelete(Function<Object, Boolean> onDelete) {
         this.onDelete = onDelete;
         return this;
     }
 
-    public FFmpegM3u8FileWatcher setOnUpdate(Function<Object, Boolean> onUpdate) {
+    public HlsFileWatcher setOnUpdate(Function<Object, Boolean> onUpdate) {
         this.onUpdate = onUpdate;
         return this;
     }

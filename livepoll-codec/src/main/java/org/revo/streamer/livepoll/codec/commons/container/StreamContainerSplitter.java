@@ -9,10 +9,10 @@ import java.io.Closeable;
 import java.util.List;
 
 @Getter
-public abstract class ContainerSplitter implements Closeable {
+public abstract class StreamContainerSplitter implements Closeable {
     private final SdpElementParser sdpElementParser;
 
-    public ContainerSplitter(SdpElementParser sdpElementParser) {
+    public StreamContainerSplitter(SdpElementParser sdpElementParser) {
         this.sdpElementParser = sdpElementParser;
     }
 
@@ -20,5 +20,9 @@ public abstract class ContainerSplitter implements Closeable {
 
     public <T extends Packet> void split(MediaType mediaType, long timeStamp, List<T> data) {
         data.forEach(it -> split(mediaType, timeStamp, it.getRaw()));
+    }
+
+    public StreamContainerSplitter start() {
+        return this;
     }
 }

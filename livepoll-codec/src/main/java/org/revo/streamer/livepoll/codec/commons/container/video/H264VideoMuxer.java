@@ -1,4 +1,4 @@
-package org.revo.streamer.livepoll.codec.commons.container.m3u8.video;
+package org.revo.streamer.livepoll.codec.commons.container.video;
 
 import lombok.SneakyThrows;
 import org.revo.streamer.livepoll.codec.commons.container.Muxer;
@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 
 import static org.revo.streamer.livepoll.codec.commons.rtp.RtpUtil.toNalu;
 
-public class M3U8VideoH264Muxer implements Muxer {
+public class H264VideoMuxer implements Muxer {
     private final OutputStream outputStream;
     private final SdpElementParser sdpElementParser;
     private long lastVideoTimeStamp = 0;
@@ -23,7 +23,7 @@ public class M3U8VideoH264Muxer implements Muxer {
     private final NALU pps;
     private final NALU AUD_NALU = RtpNALUDecoder.AUD_NALU;
 
-    public M3U8VideoH264Muxer(OutputStream outputStream, SdpElementParser sdpElementParser) {
+    public H264VideoMuxer(OutputStream outputStream, SdpElementParser sdpElementParser) {
         this.outputStream = outputStream;
         this.sdpElementParser = sdpElementParser;
         List<NALU> spsPps = getSpsPps(sdpElementParser.getSessionDescription());

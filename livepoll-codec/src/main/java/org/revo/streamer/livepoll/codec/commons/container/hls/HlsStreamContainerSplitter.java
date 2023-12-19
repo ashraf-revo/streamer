@@ -1,4 +1,4 @@
-package org.revo.streamer.livepoll.codec.commons.container.m3u8;
+package org.revo.streamer.livepoll.codec.commons.container.hls;
 
 import io.lindstrom.m3u8.model.AlternativeRendition;
 import io.lindstrom.m3u8.model.MasterPlaylist;
@@ -11,9 +11,9 @@ import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
 import org.bytedeco.javacv.FFmpegLogCallback;
 import org.bytedeco.javacv.Frame;
-import org.revo.streamer.livepoll.codec.commons.container.ContainerSplitter;
-import org.revo.streamer.livepoll.codec.commons.container.m3u8.audio.M3u8AudioAacMuxer;
-import org.revo.streamer.livepoll.codec.commons.container.m3u8.video.M3U8VideoH264Muxer;
+import org.revo.streamer.livepoll.codec.commons.container.StreamContainerSplitter;
+import org.revo.streamer.livepoll.codec.commons.container.audio.AacAudioMuxer;
+import org.revo.streamer.livepoll.codec.commons.container.video.H264VideoMuxer;
 import org.revo.streamer.livepoll.codec.commons.rtp.d.MediaType;
 import org.revo.streamer.livepoll.codec.sdp.SdpElementParser;
 import org.spf4j.io.PipedOutputStream;
@@ -24,35 +24,40 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
+public class HlsStreamContainerSplitter extends StreamContainerSplitter {
     private final MasterPlaylistParser parser = new MasterPlaylistParser();
-    private final FFmpegM3u8FileWatcher fFmpegM3u8FileWatcher;
+    private final HlsFileWatcher hlsFileWatcher;
     private Path baseMediaDirectory;
     private Recorder videoSubscriber;
     private Recorder audioSubscriber;
-    private M3U8VideoH264Muxer m3U8VideoH264Muxer;
-    private M3u8AudioAacMuxer m3u8AudioAacMuxer;
+    private H264VideoMuxer h264VideoMuxer;
+    private AacAudioMuxer aacAudioMuxer;
 
 
     @SneakyThrows
-    public FfmpegM3u8ContainerSplitter(SdpElementParser sdpElementParser,Integer time, String streamId) {
+    public HlsStreamContainerSplitter(SdpElementParser sdpElementParser, Integer time, String streamId) {
         super(sdpElementParser);
         createBaseMediaDirectory(streamId);
-        this.fFmpegM3u8FileWatcher = new FFmpegM3u8FileWatcher(this.baseMediaDirectory);
-        this.fFmpegM3u8FileWatcher.start();
+        this.hlsFileWatcher = new HlsFileWatcher(this.baseMediaDirectory);
         this.createMasterPlaylist(sdpElementParser, streamId);
         if (sdpElementParser.getVideoElementSpecific() != null) {
             PipedOutputStream videoOut = new PipedOutputStream();
             videoSubscriber = new HlsMediaSubscriber(this.baseMediaDirectory, MediaType.VIDEO, time, videoOut, streamId);
-            new Thread(videoSubscriber).start();
-            m3U8VideoH264Muxer = new M3U8VideoH264Muxer(videoOut, sdpElementParser);
+            h264VideoMuxer = new H264VideoMuxer(videoOut, sdpElementParser);
         }
         if (sdpElementParser.getAudioElementSpecific() != null) {
             PipedOutputStream audioOut = new PipedOutputStream();
             audioSubscriber = new HlsMediaSubscriber(this.baseMediaDirectory, MediaType.AUDIO, time, audioOut, streamId);
-            new Thread(audioSubscriber).start();
-            m3u8AudioAacMuxer = new M3u8AudioAacMuxer(audioOut, sdpElementParser);
+            aacAudioMuxer = new AacAudioMuxer(audioOut, sdpElementParser);
         }
+    }
+
+    @Override
+    public HlsStreamContainerSplitter start() {
+        this.hlsFileWatcher.start();
+        new Thread(videoSubscriber).start();
+        new Thread(audioSubscriber).start();
+        return this;
     }
 
     @SneakyThrows
@@ -96,18 +101,18 @@ public class FfmpegM3u8ContainerSplitter extends ContainerSplitter {
     @Override
     public void split(MediaType mediaType, long timeStamp, byte[] data) {
         if (mediaType.isVideo()) {
-            m3U8VideoH264Muxer.mux(timeStamp, data);
+            h264VideoMuxer.mux(timeStamp, data);
         }
         if (mediaType.isAudio()) {
-            m3u8AudioAacMuxer.mux(timeStamp, data);
+            aacAudioMuxer.mux(timeStamp, data);
         }
     }
 
     @SneakyThrows
     @Override
     public void close() {
-        this.m3U8VideoH264Muxer.close();
-        this.m3u8AudioAacMuxer.close();
+        this.h264VideoMuxer.close();
+        this.aacAudioMuxer.close();
         this.videoSubscriber.close();
         this.audioSubscriber.close();
         Thread.sleep(100);

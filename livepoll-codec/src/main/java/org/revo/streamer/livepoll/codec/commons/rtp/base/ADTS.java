@@ -5,8 +5,8 @@ import org.revo.streamer.livepoll.codec.sdp.ElementSpecific;
 import static org.revo.streamer.livepoll.codec.sdp.AudioClockRate.getByFrequency;
 
 public class ADTS extends Packet {
-    private static final byte[] adtsHeader = new byte[]{(byte) 0xFF, (byte) 0xF1, (byte) 0x40, (byte) 0x80, (byte) 0x2F, (byte) 0x5F, (byte) 0xFC};
-    private byte[] raw;
+    private static final byte[] ADTS_HEADER = new byte[]{(byte) 0xFF, (byte) 0xF1, (byte) 0x40, (byte) 0x80, (byte) 0x2F, (byte) 0x5F, (byte) 0xFC};
+    private final byte[] raw;
 
     // https://wiki.multimedia.cx/index.php/ADTS
     //FF F1 5C 80 00 0F FC 21
@@ -19,7 +19,8 @@ public class ADTS extends Packet {
     }
 
     private static byte[] getAdtsHeader(int size, ElementSpecific specific) {
-        byte[] adtsHeader = new byte[]{(byte) 0xFF, (byte) 0xF1, (byte) 0x40, (byte) 0x80, (byte) 0x2F, (byte) 0x5F, (byte) 0xFC};
+        byte[] adtsHeader = new byte[ADTS_HEADER.length];
+        System.arraycopy(ADTS_HEADER, 0, adtsHeader, 0, adtsHeader.length);
         size += adtsHeader.length;
         adtsHeader[2] |= (byte) ((getByFrequency(specific.clockRate()).getFrequency()) << 2);
         adtsHeader[3] |= (byte) ((size & 0x1800) >> 11);
@@ -42,6 +43,6 @@ public class ADTS extends Packet {
 
     @Override
     public int headerSize() {
-        return adtsHeader.length;
+        return ADTS_HEADER.length;
     }
 }

@@ -12,21 +12,21 @@ public class ADTS extends Packet {
     //FF F1 5C 80 00 0F FC 21
 //    FF F1 4C 80 00 1F FC
     public ADTS(byte[] payload, int offset, int size, ElementSpecific specific) {
-        byte[] adtsHeader = getAdtsHeader(size, specific);
-        raw = new byte[size + adtsHeader.length];
-        System.arraycopy(adtsHeader, 0, raw, 0, adtsHeader.length);
-        System.arraycopy(payload, offset, raw, adtsHeader.length, size);
+        byte[] header = buildHeader(size, specific);
+        raw = new byte[size + header.length];
+        System.arraycopy(header, 0, raw, 0, header.length);
+        System.arraycopy(payload, offset, raw, header.length, size);
     }
 
-    private static byte[] getAdtsHeader(int size, ElementSpecific specific) {
-        byte[] adtsHeader = new byte[ADTS_HEADER.length];
-        System.arraycopy(ADTS_HEADER, 0, adtsHeader, 0, adtsHeader.length);
-        size += adtsHeader.length;
-        adtsHeader[2] |= (byte) ((getByFrequency(specific.clockRate()).getFrequency()) << 2);
-        adtsHeader[3] |= (byte) ((size & 0x1800) >> 11);
-        adtsHeader[4] = (byte) ((size & 0x1FF8) >> 3);
-        adtsHeader[5] = (byte) ((size & 0x7) << 5);
-        return adtsHeader;
+    private static byte[] buildHeader(int size, ElementSpecific specific) {
+        byte[] header = new byte[ADTS_HEADER.length];
+        System.arraycopy(ADTS_HEADER, 0, header, 0, header.length);
+        size += header.length;
+        header[2] |= (byte) ((getByFrequency(specific.clockRate()).getFrequency()) << 2);
+        header[3] |= (byte) ((size & 0x1800) >> 11);
+        header[4] = (byte) ((size & 0x1FF8) >> 3);
+        header[5] = (byte) ((size & 0x7) << 5);
+        return header;
     }
 
     @Override
